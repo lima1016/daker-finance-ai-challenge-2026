@@ -5,12 +5,14 @@ import type { ChatMessage } from "@/lib/prompt";
 import { MessageContent } from "@/components/Cards";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { Dashboard } from "@/components/Dashboard";
+import { RiskScanner } from "@/components/RiskScanner";
+import { BudgetSimulator } from "@/components/BudgetSimulator";
 import { useProfile } from "@/lib/useProfile";
 import { buildProfileContext, computeDday, sampleProfile, type ProfileStore } from "@/lib/profile";
-import { computeAllocation, budgetResultToMessage } from "@/lib/budget";
 import { formatMan } from "@/lib/cards";
 
-// DB(snake_case) 행 → 앱 프로필(camelCase) 변환
+type View = "home" | "chat" | "scanner" | "simulator";
+
 type DbRow = {
   nickname?: string | null;
   end_date?: string | null;
@@ -48,6 +50,7 @@ export default function Home() {
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [view, setView] = useState<View>("home");
   const { data: profile, setData: setProfile } = useProfile();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -60,6 +63,7 @@ export default function Home() {
   async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
+    setView("chat");
 
     const next: ChatMessage[] = [...messages, { role: "user", content: trimmed }];
     setMessages([...next, { role: "assistant", content: "" }]);
@@ -110,25 +114,6 @@ export default function Home() {
     }
   }
 
-  // 목돈 배분 — 규칙엔진으로 결정적 계산 후 카드로 표시 (LLM 미사용)
-  function showBudget() {
-    const userMsg: ChatMessage = { role: "user", content: "내 목돈, 어떻게 나누면 좋을까?" };
-    const result = computeAllocation(profile);
-    if (!result) {
-      setMessages((m) => [
-        ...m,
-        userMsg,
-        {
-          role: "assistant",
-          content:
-            "먼저 정착금(또는 현재 잔액) 금액이 필요해요. 우측 위 '내 정보'에서 정착금을 입력하시면, 규칙에 따라 배분안을 바로 계산해 드릴게요.",
-        },
-      ]);
-      return;
-    }
-    setMessages((m) => [...m, userMsg, { role: "assistant", content: budgetResultToMessage(result) }]);
-  }
-
   async function loadFromDb() {
     try {
       const res = await fetch("/api/profiles");
@@ -145,26 +130,27 @@ export default function Home() {
 
   function goHome() {
     setMessages([]);
+    setView("home");
   }
 
-  const empty = messages.length === 0;
   const dday = profile.status.endDate ? computeDday(profile.status.endDate).label : null;
   const balance = profile.finance.balance != null ? formatMan(profile.finance.balance) : null;
   const chip = [dday, balance].filter(Boolean).join(" · ");
+  const showInput = view === "home" || view === "chat";
 
   return (
-    <div className="flex h-dvh flex-col bg-gradient-to-b from-emerald-50 to-white">
+    <div className="flex h-dvh flex-col bg-[#FFFDF8]">
       {/* 헤더 */}
       <header className="flex items-center gap-2 border-b border-emerald-100 bg-white/80 px-4 py-3 backdrop-blur">
         <button onClick={goHome} className="flex items-center gap-2 text-left" title="홈으로">
           <span className="text-2xl">🌱</span>
           <div>
             <h1 className="text-lg font-bold leading-none text-emerald-700">새봄</h1>
-            <p className="mt-0.5 text-[11px] text-gray-500">자립준비청년 곁의 AI 금융 코치</p>
+            <p className="mt-0.5 text-[11px] text-gray-500">자립준비청년 금융 코치</p>
           </div>
         </button>
         <div className="ml-auto flex items-center gap-2">
-          {!empty && (
+          {view !== "home" && (
             <button
               onClick={goHome}
               className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
@@ -182,18 +168,21 @@ export default function Home() {
         </div>
       </header>
 
-      {/* 대화 영역 */}
+      {/* 본문 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
-        {empty ? (
+        {view === "home" && (
           <Dashboard
             profile={profile}
             onAsk={send}
             onOpenProfile={() => setPanelOpen(true)}
             onLoadSample={() => setProfile(sampleProfile())}
             onLoadFromDb={loadFromDb}
-            onBudget={showBudget}
+            onOpenScanner={() => setView("scanner")}
+            onOpenSimulator={() => setView("simulator")}
           />
-        ) : (
+        )}
+
+        {view === "chat" && (
           <div className="mx-auto flex max-w-2xl flex-col gap-3">
             {messages.map((m, i) => (
               <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
@@ -218,42 +207,55 @@ export default function Home() {
             ))}
           </div>
         )}
+
+        {view === "scanner" && <RiskScanner />}
+
+        {view === "simulator" && (
+          <BudgetSimulator
+            profile={profile}
+            setProfile={setProfile}
+            onAsk={send}
+            onOpenProfile={() => setPanelOpen(true)}
+          />
+        )}
       </div>
 
-      {/* 입력창 */}
-      <div className="border-t border-gray-100 bg-white px-3 py-3">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            send(input);
-          }}
-          className="mx-auto flex max-w-2xl items-end gap-2"
-        >
-          <textarea
-            value={input}
-            onChange={(e) => setInput(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                send(input);
-              }
+      {/* 입력창 (홈·채팅에서만) */}
+      {showInput && (
+        <div className="border-t border-gray-100 bg-white px-3 py-3">
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              send(input);
             }}
-            rows={1}
-            placeholder="메시지를 입력하세요…"
-            className="max-h-32 flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-400"
-          />
-          <button
-            type="submit"
-            disabled={loading || !input.trim()}
-            className="shrink-0 rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition disabled:opacity-40"
+            className="mx-auto flex max-w-2xl items-end gap-2"
           >
-            보내기
-          </button>
-        </form>
-        <p className="mx-auto mt-2 max-w-2xl text-center text-[10px] text-gray-400">
-          새봄은 참고용 안내를 제공해요. 중요한 결정은 공식 창구(서민금융 1397·금감원 1332)를 함께 확인하세요.
-        </p>
-      </div>
+            <textarea
+              value={input}
+              onChange={(e) => setInput(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" && !e.shiftKey) {
+                  e.preventDefault();
+                  send(input);
+                }
+              }}
+              rows={1}
+              placeholder="무엇이든 편하게 물어보세요…"
+              className="max-h-32 flex-1 resize-none rounded-2xl border border-gray-200 px-4 py-2.5 text-sm outline-none focus:border-emerald-400"
+            />
+            <button
+              type="submit"
+              disabled={loading || !input.trim()}
+              className="shrink-0 rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition disabled:opacity-40"
+            >
+              보내기
+            </button>
+          </form>
+          <p className="mx-auto mt-2 max-w-2xl text-center text-[10px] text-gray-400">
+            새봄은 참고용 안내를 제공해요. 중요한 결정은 공식 창구(서민금융 1397·금감원 1332)를 함께 확인하세요.
+          </p>
+        </div>
+      )}
 
       <ProfilePanel
         open={panelOpen}
