@@ -9,6 +9,7 @@ type Props = {
   onClose: () => void;
   data: ProfileStore;
   setData: Dispatch<SetStateAction<ProfileStore>>;
+  onLoadFromDb: () => void;
 };
 
 // 만원 단위 입력 <-> 원 단위 저장 변환
@@ -32,7 +33,7 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 const inputCls =
   "rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-400";
 
-export function ProfilePanel({ open, onClose, data, setData }: Props) {
+export function ProfilePanel({ open, onClose, data, setData, onLoadFromDb }: Props) {
   const s = data.status;
   const f = data.finance;
 
@@ -179,19 +180,27 @@ export function ProfilePanel({ open, onClose, data, setData }: Props) {
             </div>
           </div>
 
-          <div className="mt-4 flex gap-2">
+          <div className="mt-4 flex flex-col gap-2">
             <button
-              onClick={() => setData(sampleProfile())}
-              className="flex-1 rounded-lg border border-emerald-200 bg-white py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+              onClick={onLoadFromDb}
+              className="rounded-lg border border-emerald-300 bg-emerald-50 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
             >
-              샘플 데이터 불러오기
+              DB에서 사용자 불러오기
             </button>
-            <button
-              onClick={() => setData(DEFAULT_PROFILE)}
-              className="flex-1 rounded-lg border border-gray-200 bg-white py-2 text-xs text-gray-500 hover:bg-gray-50"
-            >
-              초기화
-            </button>
+            <div className="flex gap-2">
+              <button
+                onClick={() => setData(sampleProfile())}
+                className="flex-1 rounded-lg border border-emerald-200 bg-white py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+              >
+                샘플 데이터
+              </button>
+              <button
+                onClick={() => setData(DEFAULT_PROFILE)}
+                className="flex-1 rounded-lg border border-gray-200 bg-white py-2 text-xs text-gray-500 hover:bg-gray-50"
+              >
+                초기화
+              </button>
+            </div>
           </div>
 
           <p className="mt-3 text-center text-[10px] text-gray-400">

@@ -143,6 +143,10 @@ export default function Home() {
     }
   }
 
+  function goHome() {
+    setMessages([]);
+  }
+
   const empty = messages.length === 0;
   const dday = profile.status.endDate ? computeDday(profile.status.endDate).label : null;
   const balance = profile.finance.balance != null ? formatMan(profile.finance.balance) : null;
@@ -152,18 +156,30 @@ export default function Home() {
     <div className="flex h-dvh flex-col bg-gradient-to-b from-emerald-50 to-white">
       {/* 헤더 */}
       <header className="flex items-center gap-2 border-b border-emerald-100 bg-white/80 px-4 py-3 backdrop-blur">
-        <span className="text-2xl">🌱</span>
-        <div>
-          <h1 className="text-lg font-bold leading-none text-emerald-700">새봄</h1>
-          <p className="mt-0.5 text-[11px] text-gray-500">자립준비청년 곁의 AI 금융 코치</p>
-        </div>
-        <button
-          onClick={() => setPanelOpen(true)}
-          className="ml-auto flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50"
-        >
-          <span>{chip || "내 정보"}</span>
-          <span aria-hidden>›</span>
+        <button onClick={goHome} className="flex items-center gap-2 text-left" title="홈으로">
+          <span className="text-2xl">🌱</span>
+          <div>
+            <h1 className="text-lg font-bold leading-none text-emerald-700">새봄</h1>
+            <p className="mt-0.5 text-[11px] text-gray-500">자립준비청년 곁의 AI 금융 코치</p>
+          </div>
         </button>
+        <div className="ml-auto flex items-center gap-2">
+          {!empty && (
+            <button
+              onClick={goHome}
+              className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+            >
+              ← 홈
+            </button>
+          )}
+          <button
+            onClick={() => setPanelOpen(true)}
+            className="flex items-center gap-1.5 rounded-full border border-emerald-200 bg-white px-3 py-1.5 text-xs font-medium text-emerald-700 transition hover:bg-emerald-50"
+          >
+            <span>{chip || "내 정보"}</span>
+            <span aria-hidden>›</span>
+          </button>
+        </div>
       </header>
 
       {/* 대화 영역 */}
@@ -239,7 +255,13 @@ export default function Home() {
         </p>
       </div>
 
-      <ProfilePanel open={panelOpen} onClose={() => setPanelOpen(false)} data={profile} setData={setProfile} />
+      <ProfilePanel
+        open={panelOpen}
+        onClose={() => setPanelOpen(false)}
+        data={profile}
+        setData={setProfile}
+        onLoadFromDb={loadFromDb}
+      />
     </div>
   );
 }
