@@ -19,7 +19,33 @@ export async function GET() {
     .order("created_at", { ascending: true });
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    console.error("[profiles]", error.message);
+
+    // "fetch failed"는 대개 프로젝트가 사라졌거나(무료 티어 만료) 네트워크가 막힌 경우다.
+    // 원본 메시지를 그대로 내보내면 사용자는 무슨 일인지 알 수 없다.
+    const unreachable = /fetch failed|ENOTFOUND|ECONNREFUSED|EAI_AGAIN|getaddrinfo/i.test(
+      error.message,
+    );
+    if (unreachable) {
+      const host = (() => {
+        try {
+          return new URL(process.env.SUPABASE_URL!).host;
+        } catch {
+          return process.env.SUPABASE_URL ?? "(설정 없음)";
+        }
+      })();
+      return NextResponse.json(
+        {
+          error: `Supabase 서버(${host})에 연결하지 못했어요. 프로젝트가 삭제·중지되었거나 주소가 잘못됐을 수 있어요. DB 없이도 '내 정보 입력하기'와 '샘플로 둘러보기'는 그대로 쓸 수 있어요.`,
+        },
+        { status: 503 },
+      );
+    }
+
+    return NextResponse.json(
+      { error: `DB에서 불러오지 못했어요. (${error.message})` },
+      { status: 500 },
+    );
   }
   return NextResponse.json({ profiles: data });
 }

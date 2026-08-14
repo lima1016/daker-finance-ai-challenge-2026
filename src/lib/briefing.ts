@@ -1,11 +1,15 @@
-// "오늘의 브리핑" — AI가 먼저 챙기는 프로액티브 카드 (규칙 기반, 즉시·무료·항상 작동)
+// "오늘의 브리핑" — 규칙 기반 폴백
+//
+// 평소엔 /api/briefing 이 AI로 브리핑을 만든다. 이 파일은 키가 없거나
+// 호출이 실패했을 때를 위한 안전망 — 즉시·무료·항상 작동한다.
 import { computeDday, type ProfileStore } from "./profile";
+import { computeReadiness } from "./readiness";
+import { buildForecast } from "./forecast";
 
 export type BriefingTone = "info" | "warn" | "danger";
-export type BriefingAction = "chat" | "scanner" | "simulator";
+export type BriefingAction = "chat" | "scanner" | "simulator" | "forecast";
 
 export interface BriefingItem {
-  icon: BriefingTone; // UI가 톤별 아이콘 매핑
   tone: BriefingTone;
   title: string;
   desc: string;
@@ -23,7 +27,6 @@ export function buildBriefing(p: ProfileStore): BriefingItem[] {
     const d = computeDday(s.endDate);
     if (!isNaN(d.days) && d.days >= 0 && d.days <= 60) {
       items.push({
-        icon: "warn",
         tone: "warn",
         title: `보호종료 ${d.label} — 지금 신청할 제도가 있어요`,
         desc: "자립수당·주거·의료 지원은 시점을 놓치면 못 받을 수 있어요.",
@@ -33,22 +36,35 @@ export function buildBriefing(p: ProfileStore): BriefingItem[] {
     }
   }
 
-  // 2) 배분 점검 (저축 비중 낮거나, 아직 안 나눔)
+  // 2) 잔액 소진 시점 경고
+  const forecast = buildForecast(p, []);
+  const depletion = forecast.ready ? forecast.series[0].depletionMonth : null;
+  if (depletion != null && depletion <= 12) {
+    items.push({
+      tone: "danger",
+      title: `이대로면 ${depletion}개월 뒤 잔액이 바닥나요`,
+      desc: "무엇을 바꾸면 달라지는지 그래프로 같이 볼까요?",
+      action: "forecast",
+    });
+  }
+
+  // 3) 가장 약한 축 챙기기
+  const readiness = computeReadiness(p);
+  if (readiness.filled && readiness.weakest.value < 50) {
+    items.push({
+      tone: "info",
+      title: `${readiness.weakest.label}이(가) 가장 약해요`,
+      desc: readiness.weakest.hint,
+      action: "chat",
+      prompt: `제 자립 준비도에서 ${readiness.weakest.label} 점수가 낮게 나왔어요. 어떻게 올릴 수 있을까요?`,
+    });
+  }
+
+  // 4) 배분 점검
   const a = f.alloc;
   const allocTotal = (a?.emergency || 0) + (a?.living || 0) + (a?.saving || 0);
-  if (allocTotal > 0) {
-    if ((a?.saving || 0) / allocTotal < 0.25) {
-      items.push({
-        icon: "info",
-        tone: "info",
-        title: "저축 비중이 낮아요",
-        desc: "여유가 되면 저축·자산형성을 조금 늘려볼까요? 시뮬레이터로 맞춰봐요.",
-        action: "simulator",
-      });
-    }
-  } else if (f.settlement != null || f.balance != null) {
+  if (allocTotal === 0 && (f.settlement != null || f.balance != null)) {
     items.push({
-      icon: "info",
       tone: "info",
       title: "목돈, 아직 안 나눴어요",
       desc: "정착금을 용도별로 나눠두면 관리가 훨씬 쉬워져요.",
@@ -56,14 +72,13 @@ export function buildBriefing(p: ProfileStore): BriefingItem[] {
     });
   }
 
-  // 3) 사기 주의 (상시)
+  // 5) 사기 주의 (상시)
   items.push({
-    icon: "danger",
     tone: "danger",
     title: "요즘 '통장 대여' 사기가 늘었어요",
     desc: "수상한 문자·링크를 받으면 위험 스캐너로 먼저 확인하세요.",
     action: "scanner",
   });
 
-  return items;
+  return items.slice(0, 4);
 }

@@ -48,8 +48,8 @@ export function initialAlloc(p: ProfileStore): { total: number; alloc: Alloc } {
   // 배분이 없으면 규칙 기본값(비상금 6개월·생활비 6개월·나머지 저축)으로 시작
   const exp = p.status.expense && p.status.expense > 0 ? p.status.expense : 1_000_000;
   const round10k = (n: number) => Math.round(n / 10000) * 10000;
-  let emergency = Math.min(round10k(exp * 6), total);
-  let living = Math.min(round10k(exp * 6), Math.max(0, total - emergency));
+  const emergency = Math.min(round10k(exp * 6), total);
+  const living = Math.min(round10k(exp * 6), Math.max(0, total - emergency));
   const saving = Math.max(0, total - emergency - living);
   return { total, alloc: { emergency, living, saving } };
 }

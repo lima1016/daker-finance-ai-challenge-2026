@@ -1,17 +1,24 @@
 "use client";
 
 import { useRef, useState } from "react";
-import type { ChatMessage } from "@/lib/prompt";
-import { MessageContent } from "@/components/Cards";
+import type { ChatMessage, ChatRole } from "@/lib/prompt";
+import type { Card } from "@/lib/cards";
+import type { BriefingAction } from "@/lib/briefing";
+import { CardView } from "@/components/Cards";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { Dashboard } from "@/components/Dashboard";
 import { RiskScanner } from "@/components/RiskScanner";
 import { BudgetSimulator } from "@/components/BudgetSimulator";
+import { Forecast } from "@/components/Forecast";
 import { useProfile } from "@/lib/useProfile";
-import { buildProfileContext, computeDday, sampleProfile, type ProfileStore } from "@/lib/profile";
+import { computeDday, sampleProfile, type ProfileStore } from "@/lib/profile";
 import { formatMan } from "@/lib/cards";
 
-type View = "home" | "chat" | "scanner" | "simulator";
+type View = "home" | "chat" | "scanner" | "simulator" | "forecast";
+
+/** 어시스턴트 답변은 텍스트와 카드가 순서대로 섞인 블록 목록이다 */
+type Block = { kind: "text"; text: string } | { kind: "card"; card: Card };
+type UiMessage = { role: ChatRole; blocks: Block[] };
 
 type DbRow = {
   nickname?: string | null;
@@ -45,12 +52,24 @@ function rowToProfile(r: DbRow): ProfileStore {
   };
 }
 
+const blocksToText = (blocks: Block[]) =>
+  blocks
+    .map((b) => (b.kind === "text" ? b.text : `[${b.card.type} 카드를 보여줌]`))
+    .join("")
+    .trim();
+
+const toHistory = (messages: UiMessage[]): ChatMessage[] =>
+  messages
+    .map((m) => ({ role: m.role, content: blocksToText(m.blocks) }))
+    .filter((m) => m.content.length > 0);
+
 export default function Home() {
-  const [messages, setMessages] = useState<ChatMessage[]>([]);
+  const [messages, setMessages] = useState<UiMessage[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
   const [panelOpen, setPanelOpen] = useState(false);
   const [view, setView] = useState<View>("home");
+  const [notice, setNotice] = useState("");
   const { data: profile, setData: setProfile } = useProfile();
   const scrollRef = useRef<HTMLDivElement>(null);
 
@@ -60,13 +79,36 @@ export default function Home() {
     });
   };
 
+  /** 마지막(어시스턴트) 메시지의 블록을 갱신 */
+  const patchLast = (fn: (blocks: Block[]) => Block[]) =>
+    setMessages((m) => {
+      const copy = [...m];
+      const last = copy[copy.length - 1];
+      if (!last) return copy;
+      copy[copy.length - 1] = { ...last, blocks: fn(last.blocks) };
+      return copy;
+    });
+
+  const appendText = (text: string) =>
+    patchLast((blocks) => {
+      const last = blocks[blocks.length - 1];
+      if (last?.kind === "text") {
+        return [...blocks.slice(0, -1), { kind: "text", text: last.text + text }];
+      }
+      return [...blocks, { kind: "text", text }];
+    });
+
   async function send(text: string) {
     const trimmed = text.trim();
     if (!trimmed || loading) return;
     setView("chat");
 
-    const next: ChatMessage[] = [...messages, { role: "user", content: trimmed }];
-    setMessages([...next, { role: "assistant", content: "" }]);
+    const history = [...toHistory(messages), { role: "user" as const, content: trimmed }];
+    setMessages((m) => [
+      ...m,
+      { role: "user", blocks: [{ kind: "text", text: trimmed }] },
+      { role: "assistant", blocks: [] },
+    ]);
     setInput("");
     setLoading(true);
     scrollToBottom();
@@ -75,39 +117,43 @@ export default function Home() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: next, profile: buildProfileContext(profile) || undefined }),
+        body: JSON.stringify({ messages: history, profile }),
       });
 
-      if (!res.ok || !res.body) {
-        const errText = await res.text();
-        setMessages((m) => {
-          const copy = [...m];
-          copy[copy.length - 1] = { role: "assistant", content: errText || "오류가 발생했어요." };
-          return copy;
-        });
+      if (!res.body) {
+        appendText("응답을 받지 못했어요. 잠시 후 다시 시도해 주세요.");
         return;
       }
 
       const reader = res.body.getReader();
       const decoder = new TextDecoder();
-      let acc = "";
-      while (true) {
+      let buffer = "";
+
+      const handle = (raw: string) => {
+        if (!raw.trim()) return;
+        let ev: { t?: string; v?: unknown };
+        try {
+          ev = JSON.parse(raw);
+        } catch {
+          return; // 잘린 줄은 버린다
+        }
+        if (ev.t === "text" && typeof ev.v === "string") appendText(ev.v);
+        else if (ev.t === "card" && ev.v) patchLast((b) => [...b, { kind: "card", card: ev.v as Card }]);
+        else if (ev.t === "error" && typeof ev.v === "string") appendText(`\n\n⚠️ ${ev.v}`);
+        scrollToBottom();
+      };
+
+      for (;;) {
         const { done, value } = await reader.read();
         if (done) break;
-        acc += decoder.decode(value, { stream: true });
-        setMessages((m) => {
-          const copy = [...m];
-          copy[copy.length - 1] = { role: "assistant", content: acc };
-          return copy;
-        });
-        scrollToBottom();
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        buffer = lines.pop() ?? "";
+        lines.forEach(handle);
       }
+      handle(buffer);
     } catch {
-      setMessages((m) => {
-        const copy = [...m];
-        copy[copy.length - 1] = { role: "assistant", content: "연결에 문제가 생겼어요. 잠시 후 다시 시도해 주세요." };
-        return copy;
-      });
+      appendText("연결에 문제가 생겼어요. 잠시 후 다시 시도해 주세요.");
     } finally {
       setLoading(false);
       scrollToBottom();
@@ -115,17 +161,26 @@ export default function Home() {
   }
 
   async function loadFromDb() {
+    setNotice("");
     try {
       const res = await fetch("/api/profiles");
       const json = await res.json();
       if (!res.ok || !json.profiles?.length) {
-        alert(json.error || "DB에 저장된 사용자가 없어요.");
+        setNotice(json.error || "DB에 저장된 사용자가 없어요.");
         return;
       }
       setProfile(rowToProfile(json.profiles[0] as DbRow));
+      setPanelOpen(false);
     } catch {
-      alert("DB 연결에 실패했어요. 서버와 Supabase 설정을 확인해 주세요.");
+      setNotice("서버에 연결하지 못했어요. 개발 서버가 켜져 있는지 확인해 주세요.");
     }
+  }
+
+  function navigate(action: BriefingAction, prompt?: string) {
+    if (action === "scanner") setView("scanner");
+    else if (action === "simulator") setView("simulator");
+    else if (action === "forecast") setView("forecast");
+    else if (prompt) void send(prompt);
   }
 
   function goHome() {
@@ -143,7 +198,9 @@ export default function Home() {
       {/* 헤더 */}
       <header className="flex items-center gap-2 border-b border-emerald-100 bg-white/80 px-4 py-3 backdrop-blur">
         <button onClick={goHome} className="flex items-center gap-2 text-left" title="홈으로">
-          <span className="text-2xl">🌱</span>
+          <span className="text-2xl" aria-hidden>
+            🌱
+          </span>
           <div>
             <h1 className="text-lg font-bold leading-none text-emerald-700">새봄</h1>
             <p className="mt-0.5 text-[11px] text-gray-500">자립준비청년 금융 코치</p>
@@ -170,6 +227,23 @@ export default function Home() {
 
       {/* 본문 */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-4">
+        {notice && (
+          <div
+            role="status"
+            className="mx-auto mb-4 flex max-w-2xl items-start gap-2 rounded-2xl border border-amber-200 bg-amber-50 p-3 text-[13px] leading-relaxed text-amber-900"
+          >
+            <span aria-hidden>ℹ️</span>
+            <span className="min-w-0 flex-1">{notice}</span>
+            <button
+              onClick={() => setNotice("")}
+              aria-label="알림 닫기"
+              className="shrink-0 rounded px-1 text-amber-700 hover:bg-amber-100"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+
         {view === "home" && (
           <Dashboard
             profile={profile}
@@ -177,38 +251,53 @@ export default function Home() {
             onOpenProfile={() => setPanelOpen(true)}
             onLoadSample={() => setProfile(sampleProfile())}
             onLoadFromDb={loadFromDb}
-            onOpenScanner={() => setView("scanner")}
-            onOpenSimulator={() => setView("simulator")}
+            onNavigate={navigate}
           />
         )}
 
         {view === "chat" && (
           <div className="mx-auto flex max-w-2xl flex-col gap-3">
-            {messages.map((m, i) => (
-              <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
-                <div
-                  className={
-                    m.role === "user"
-                      ? "max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-emerald-600 px-4 py-2.5 text-sm text-white"
-                      : "flex max-w-[90%] flex-col gap-1 rounded-2xl rounded-bl-sm border border-gray-100 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm"
-                  }
-                >
-                  {m.role === "user" ? (
-                    m.content
-                  ) : m.content ? (
-                    <MessageContent content={m.content} />
-                  ) : loading && i === messages.length - 1 ? (
-                    "…"
-                  ) : (
-                    ""
-                  )}
+            {messages.map((m, i) => {
+              const empty = m.blocks.length === 0;
+              return (
+                <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+                  <div
+                    className={
+                      m.role === "user"
+                        ? "max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-emerald-600 px-4 py-2.5 text-sm text-white"
+                        : "flex w-full max-w-[92%] flex-col gap-1 rounded-2xl rounded-bl-sm border border-gray-100 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm"
+                    }
+                  >
+                    {empty && loading && i === messages.length - 1 ? (
+                      <span className="text-gray-400">…</span>
+                    ) : (
+                      m.blocks.map((b, j) =>
+                        b.kind === "text" ? (
+                          <p key={j} className="whitespace-pre-wrap">
+                            {b.text.trim()}
+                          </p>
+                        ) : (
+                          <CardView key={j} card={b.card} />
+                        ),
+                      )
+                    )}
+                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
         {view === "scanner" && <RiskScanner />}
+
+        {view === "forecast" && (
+          <Forecast
+            profile={profile}
+            onAsk={send}
+            onOpenProfile={() => setPanelOpen(true)}
+            onOpenSimulator={() => setView("simulator")}
+          />
+        )}
 
         {view === "simulator" && (
           <BudgetSimulator
@@ -226,7 +315,7 @@ export default function Home() {
           <form
             onSubmit={(e) => {
               e.preventDefault();
-              send(input);
+              void send(input);
             }}
             className="mx-auto flex max-w-2xl items-end gap-2"
           >
@@ -236,7 +325,7 @@ export default function Home() {
               onKeyDown={(e) => {
                 if (e.key === "Enter" && !e.shiftKey) {
                   e.preventDefault();
-                  send(input);
+                  void send(input);
                 }
               }}
               rows={1}
@@ -252,7 +341,8 @@ export default function Home() {
             </button>
           </form>
           <p className="mx-auto mt-2 max-w-2xl text-center text-[10px] text-gray-400">
-            새봄은 참고용 안내를 제공해요. 중요한 결정은 공식 창구(서민금융 1397·금감원 1332)를 함께 확인하세요.
+            새봄은 참고용 안내를 제공해요. 중요한 결정은 공식 창구(서민금융 1397·금감원 1332)를 함께
+            확인하세요.
           </p>
         </div>
       )}

@@ -1,36 +1,224 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🌱 새봄 (Saebom)
 
-## Getting Started
+**자립준비청년을 위한 AI 금융 코치**
 
-First, run the development server:
+만 18세가 되면 보호시설을 떠나 홀로서기를 시작하는 청년들이 있습니다. 이들을 **자립준비청년**이라고 부릅니다.
+목돈(자립정착금)을 처음 손에 쥐지만, 그 돈을 어떻게 나눠 써야 하는지, 어떤 지원제도를 신청할 수 있는지,
+이 문자가 사기인지 아닌지 — **물어볼 어른이 없습니다.**
+
+새봄은 그 자리를 대신하는 앱입니다. 판단하지 않고, 청년의 눈높이에서, 먼저 챙겨줍니다.
+
+---
+
+## 새봄이 하는 일
+
+### 1. 📉 내 돈이 언제까지 버틸까 — 현금흐름 예측
+
+지금 잔액과 수입·지출을 넣으면 **앞으로 24개월 동안 잔액이 어떻게 변할지** 그래프로 보여줍니다.
+"2027년 3월에 0원이 됩니다" 처럼 언제 바닥나는지 콕 집어 알려주고,
+AI가 *"취업하면"*, *"LH임대로 옮기면"* 같은 현실적인 선택지를 만들어 곡선을 겹쳐 보여줍니다.
+무엇을 바꾸면 결과가 어떻게 달라지는지 눈으로 비교할 수 있습니다.
+
+### 2. 🛡️ 이 문자 사기인가요 — 위험 스캐너
+
+받은 문자·카톡·계약서를 붙여넣거나 **스크린샷을 그대로 올리면** 검사해 줍니다.
+AI가 이미지 속 글자를 읽어내고, 위험한 문장에 **직접 색칠**해서 "이 문장이 왜 위험한지" 하나하나 짚어줍니다.
+0~100 위험도 점수와 지금 당장 해야 할 일도 함께 알려줍니다.
+
+### 3. 📊 나는 지금 어디쯤 — 자립 준비도
+
+주거·소득·비상금·지출관리·제도활용 **5가지를 점수로 매겨** 오각형 그래프로 보여줍니다.
+가장 약한 부분을 짚어주고, AI가 그것을 어떻게 끌어올릴지 조언합니다.
+
+### 4. ✨ 오늘 챙길 것 — AI 브리핑
+
+앱을 열면 질문하기 전에 새봄이 **먼저** 오늘 챙겨야 할 것을 정리해 둡니다.
+"보호종료 D-34, 지금 신청할 제도가 있어요" 처럼요.
+
+그리고 무엇이든 채팅으로 물어볼 수 있습니다. 익명이고, 대화 내용은 저장하지 않습니다.
+
+---
+
+## 🔒 새봄이 지키는 원칙
+
+### AI는 금액을 만들어내지 않습니다
+
+돈 이야기에서 AI가 숫자를 지어내면 위험합니다. 그래서 역할을 나눴습니다.
+
+| 하는 일                                     | 담당                    |
+| ------------------------------------------- | ----------------------- |
+| 잔액 곡선, 소진 시점, 준비도 점수, 목돈 배분 | **계산기** (정해진 공식) |
+| 무엇을 바꿔볼지, 왜 그런지, 뭘 먼저 챙길지   | **AI**                  |
+
+AI는 *"월세를 20만원 줄이면"* 같은 **아이디어**만 냅니다.
+그 결과 잔액이 어떻게 변하는지는 앱이 직접 계산합니다.
+AI가 엉뚱한 금액을 말해도 화면에 반영되지 않도록 서버에서 걸러냅니다.
+
+### 확실하지 않으면 확실하지 않다고 말합니다
+
+- 투자 권유나 특정 금융상품 판매를 하지 않습니다
+- 모르면 모른다고 하고, 공식 창구(서민금융 1397 · 금감원 1332 · 경찰 112)를 안내합니다
+- 답변은 실제 공식 자료(아동권리보장원 자립정보북, 금융감독원 등)를 근거로 삼고, 출처를 밝힙니다
+
+---
+
+## 🚀 실행해 보기
+
+컴퓨터에 **Node.js 20 이상**이 설치되어 있어야 합니다. ([nodejs.org](https://nodejs.org)에서 LTS 버전 설치)
+
+### 1단계 — 준비물 내려받기
+
+터미널(명령 프롬프트)을 열고 프로젝트 폴더에서:
+
+```bash
+npm install
+```
+
+### 2단계 — 열쇠(API 키) 넣기
+
+`.env.example` 파일을 복사해 `.env.local` 이라는 이름으로 만듭니다.
+
+```bash
+cp .env.example .env.local
+```
+
+그 다음 `.env.local` 파일을 메모장 같은 걸로 열어 값을 채웁니다. **AI 키만 있으면 일단 돌아갑니다.**
+
+| 항목             | 뭐 하는 건가요                           | 어디서 받나요                                                     |
+| ---------------- | ---------------------------------------- | ----------------------------------------------------------------- |
+| `GEMINI_API_KEY` | AI가 답변을 만드는 데 필요 **(필수)**     | [Google AI Studio](https://aistudio.google.com/app/apikey) — 무료 |
+| `GEMINI_MODEL`   | 어떤 AI 모델을 쓸지                       | 기본값 그대로 두면 됩니다                                          |
+| `SUPABASE_*`     | 공식 자료 검색과 데모 사용자 기능 (선택) | [supabase.com](https://supabase.com) — 무료                       |
+
+> **Supabase는 없어도 됩니다.** 비워두면 "공식 자료 근거" 표시와 "DB에서 불러오기" 버튼만 빠지고,
+> 나머지 기능은 전부 그대로 작동합니다.
+
+### 3단계 — 실행
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+브라우저에서 **http://localhost:3000** 을 엽니다.
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 4단계 — 둘러보기
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+처음 열면 정보가 비어 있습니다. **"샘플로 둘러보기"** 를 누르면 가상 인물 '김새봄'의 정보가 들어가면서
+모든 기능을 바로 볼 수 있습니다.
 
-## Learn More
+---
 
-To learn more about Next.js, take a look at the following resources:
+## 🗄️ Supabase 붙이기 (선택)
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+공식 자료 근거 기능까지 쓰고 싶다면:
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+1. [supabase.com](https://supabase.com)에서 무료 프로젝트를 만듭니다
+2. 왼쪽 메뉴 **SQL Editor** → **New query** 에 아래 파일 내용을 **순서대로** 붙여넣고 Run
+   1. `supabase/schema.sql` — 표(테이블) 만들기
+   2. `supabase/seed.sql` — 예시 데이터 넣기
+   3. `supabase/rag.sql` — 자료 검색 기능 설정
+3. **Settings → API** 에서 주소와 키를 복사해 `.env.local`에 붙여넣습니다
+4. 앱을 실행한 뒤, 자료를 검색 가능하게 만드는 작업을 한 번 실행합니다
 
-## Deploy on Vercel
+   ```bash
+   curl -X POST http://localhost:3000/api/rag/reindex
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+> 처음부터 다시 만들고 싶으면 `supabase/reset.sql`을 실행하세요. (기존 데이터가 지워집니다)
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+
+## 🩹 문제가 생겼을 때
+
+### "지금은 AI 사용량이 가득 찼어요"
+
+Gemini 무료 요금제는 **모델 하나당 하루 20번**까지만 쓸 수 있습니다.
+
+새봄은 이걸 알아서 처리합니다. `.env.local`의 `GEMINI_MODEL`에 모델을 쉼표로 여러 개 적어두면,
+한 모델의 한도가 차는 순간 **자동으로 다음 모델로 넘어갑니다.** 기본 설정은 5개라 하루 약 100번까지 쓸 수 있습니다.
+
+```
+GEMINI_MODEL=gemini-3.5-flash,gemini-3.6-flash,gemini-3-flash-preview,gemini-3.1-flash-lite,gemini-flash-lite-latest
+```
+
+그래도 부족하면 Google AI Studio에서 결제를 등록하면 한도가 풀립니다.
+
+### "Supabase 서버에 연결하지 못했어요"
+
+무료 Supabase 프로젝트는 **약 일주일간 접속이 없으면 자동으로 잠자기 모드**가 됩니다.
+[대시보드](https://supabase.com/dashboard)에 들어가 **Restore project** 를 누르면 몇 분 뒤 다시 살아납니다.
+데이터는 그대로 보존되니 안심하세요.
+
+이 상태에서도 앱은 멈추지 않습니다. 자료 근거 표시만 빠지고 나머지는 정상 작동합니다.
+
+### 화면이 이상하게 보여요
+
+브라우저를 새로고침해 보세요. 그래도 안 되면 터미널에서 `Ctrl+C`로 멈춘 뒤 `npm run dev`를 다시 실행합니다.
+
+---
+
+## 🧩 어떻게 만들어졌나 (개발자용)
+
+| 구분      | 사용 기술                                                          |
+| --------- | ------------------------------------------------------------------ |
+| 화면      | Next.js 16 (App Router), React 19, Tailwind CSS 4                  |
+| AI        | Google Gemini / Anthropic Claude — `LLM_PROVIDER` 하나로 교체 가능 |
+| 자료 검색 | Supabase pgvector + Gemini 임베딩 (RAG)                            |
+| 그래프    | 라이브러리 없이 직접 그린 SVG                                       |
+
+### 폴더 구조
+
+```
+src/
+├─ app/
+│  ├─ page.tsx              화면 전체 (홈·채팅·스캐너·예측·시뮬레이터)
+│  └─ api/
+│     ├─ chat/              대화 (실시간 스트리밍 + 카드)
+│     ├─ scan/              위험 검사 (이미지 판독 포함)
+│     ├─ forecast/          현금흐름 시나리오
+│     ├─ briefing/          오늘의 브리핑 + 준비도 코칭
+│     └─ profiles/          데모 사용자 불러오기
+├─ components/
+│  ├─ charts.tsx            SVG 그래프 (곡선·오각형·게이지)
+│  ├─ Cards.tsx             대화 속 카드 6종
+│  ├─ Dashboard.tsx         홈 화면
+│  ├─ Forecast.tsx          현금흐름 화면
+│  ├─ RiskScanner.tsx       위험 스캐너 화면
+│  └─ BudgetSimulator.tsx   목돈 배분 시뮬레이터
+└─ lib/
+   ├─ forecast.ts           잔액 예측 계산 (AI 아님)
+   ├─ readiness.ts          자립 준비도 점수 계산 (AI 아님)
+   ├─ budget.ts             목돈 배분 규칙 (AI 아님)
+   ├─ llm.ts                AI 호출 (스트리밍·구조화 출력·이미지·모델 전환)
+   ├─ schema.ts             AI 응답 형식 정의
+   ├─ cards.ts              카드 타입 & 검증
+   └─ profileStore.ts       내 정보 저장 (브라우저 localStorage)
+```
+
+### AI를 다루는 방식
+
+- **구조화 출력** — AI 응답을 JSON 스키마로 강제합니다. 표준 JSON Schema 한 벌로
+  Gemini(`responseJsonSchema`)와 Claude(도구 `input_schema`)를 모두 지원합니다.
+- **도구 호출** — 대화 중 카드는 AI가 도구를 부르면 서버가 사용자 정보로 계산해 만듭니다.
+  AI가 넘긴 금액은 쓰지 않습니다.
+- **검증** — 모든 카드는 화면에 그리기 전 서버에서 형식을 확인합니다. 어긋나면 버립니다.
+- **실패해도 멈추지 않음** — AI가 느리거나 실패하면 정해진 규칙으로 계산한 결과를 대신 보여줍니다.
+
+### 명령어
+
+```bash
+npm run dev     # 개발 서버 실행
+npm run build   # 배포용 빌드
+npm run lint    # 코드 검사
+```
+
+---
+
+## ⚠️ 알아두세요
+
+새봄은 **참고용 안내**를 제공하는 도우미입니다. 실제 신청 자격이나 금액, 마감일은
+반드시 담당 기관이나 공식 창구에서 확인하세요.
+
+- 서민금융진흥원 **1397**
+- 금융감독원 **1332**
+- 경찰 (피해 신고) **112**

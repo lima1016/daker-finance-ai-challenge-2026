@@ -24,13 +24,13 @@ export interface ProfileStore {
 
 export const DEFAULT_PROFILE: ProfileStore = { status: {}, finance: {} };
 
-/** 데모용 샘플 사용자 ('준이') — 보호종료 D-34, 정착금 1,500만원 */
+/** 데모용 샘플 사용자 ('김새봄') — 보호종료 D-34, 정착금 1,500만원 */
 export function sampleProfile(): ProfileStore {
   const end = new Date();
   end.setDate(end.getDate() + 34);
   const endDate = end.toISOString().slice(0, 10);
   return {
-    status: { nickname: "준이", endDate, housing: "원룸 월세", work: "구직 중", income: 1200000, expense: 900000 },
+    status: { nickname: "김새봄", endDate, housing: "원룸 월세", work: "구직 중", income: 1200000, expense: 900000 },
     finance: {
       settlement: 15000000,
       allowance: 500000,
