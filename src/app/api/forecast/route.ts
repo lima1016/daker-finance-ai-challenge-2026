@@ -4,6 +4,7 @@ import { buildGrounding } from "@/lib/grounding";
 import { SCENARIOS_SCHEMA } from "@/lib/schema";
 import { buildForecast, forecastContext, type Scenario } from "@/lib/forecast";
 import { buildProfileContext, DEFAULT_PROFILE, type ProfileStore } from "@/lib/profile";
+import { cached, cacheKey } from "@/lib/serverCache";
 
 const INSTRUCTION = `# 현금흐름 시나리오 모드
 이 사람의 앞으로 24개월 잔액 흐름을 놓고, 시도해볼 만한 what-if 시나리오를 만듭니다.
@@ -52,19 +53,24 @@ export async function POST(req: Request) {
     });
     const profileText = buildProfileContext(profile);
 
-    const result = await generateObject<ScenarioResponse>({
-      system: [SYSTEM_PROMPT, INSTRUCTION, grounding].filter(Boolean).join("\n\n"),
-      prompt: [
-        profileText ? `# 사용자 정보\n${profileText}` : "",
-        `# 현재 현금흐름\n${forecastContext(profile, base)}`,
-        "위 상황에 맞는 what-if 시나리오를 만들어 주세요.",
-      ]
-        .filter(Boolean)
-        .join("\n\n"),
-      schema: SCENARIOS_SCHEMA,
-      // 그래프는 이미 화면에 있고 스피너가 돌고 있으니, 멈춘 시도를 끊고 다시 걸 여유를 준다
-      timeoutMs: 45_000,
-    });
+    const situation = [
+      profileText ? `# 사용자 정보\n${profileText}` : "",
+      `# 현재 현금흐름\n${forecastContext(profile, base)}`,
+      "위 상황에 맞는 what-if 시나리오를 만들어 주세요.",
+    ]
+      .filter(Boolean)
+      .join("\n\n");
+
+    // 상황이 같으면 시나리오도 같다 — 예시 데이터 방문이 반복돼도 호출은 한 번만
+    const result = await cached(cacheKey("forecast", situation), 20 * 60_000, () =>
+      generateObject<ScenarioResponse>({
+        system: [SYSTEM_PROMPT, INSTRUCTION, grounding].filter(Boolean).join("\n\n"),
+        prompt: situation,
+        schema: SCENARIOS_SCHEMA,
+        // 그래프는 이미 화면에 있고 스피너가 돌고 있으니, 멈춘 시도를 끊고 다시 걸 여유를 준다
+        timeoutMs: 45_000,
+      }),
+    );
 
     const scenarios = (result.scenarios ?? []).filter(
       (s) => s?.label && (s.incomeDelta || s.expenseDelta || s.balanceDelta),

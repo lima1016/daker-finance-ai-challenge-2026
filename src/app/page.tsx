@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import type { ChatMessage, ChatRole } from "@/lib/prompt";
 import type { Card } from "@/lib/cards";
 import type { BriefingAction } from "@/lib/briefing";
@@ -11,7 +11,7 @@ import { RiskScanner } from "@/components/RiskScanner";
 import { BudgetSimulator } from "@/components/BudgetSimulator";
 import { Forecast } from "@/components/Forecast";
 import { useProfile } from "@/lib/useProfile";
-import { computeDday, sampleProfile, type ProfileStore } from "@/lib/profile";
+import { computeDday, hasProfile, sampleProfile, type ProfileStore } from "@/lib/profile";
 import { formatMan } from "@/lib/cards";
 
 type View = "home" | "chat" | "scanner" | "simulator" | "forecast";
@@ -73,6 +73,13 @@ export default function Home() {
   const { data: profile, setData: setProfile } = useProfile();
   const scrollRef = useRef<HTMLDivElement>(null);
 
+  // 내 정보가 없으면 예시 인물의 데이터로 화면을 채운다.
+  // 빈 화면을 먼저 보여주면 앱이 무엇을 하는지 알 수 없기 때문. 저장은 하지 않는다.
+  const previewing = !hasProfile(profile);
+  // sampleProfile()은 호출할 때마다 새 객체라, 메모하지 않으면 effect가 매 렌더 다시 돈다
+  const sample = useMemo(() => sampleProfile(), []);
+  const activeProfile = previewing ? sample : profile;
+
   const scrollToBottom = () => {
     requestAnimationFrame(() => {
       scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: "smooth" });
@@ -117,7 +124,7 @@ export default function Home() {
       const res = await fetch("/api/chat", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: history, profile }),
+        body: JSON.stringify({ messages: history, profile: activeProfile }),
       });
 
       if (!res.body) {
@@ -207,6 +214,15 @@ export default function Home() {
           </div>
         </button>
         <div className="ml-auto flex items-center gap-2">
+          {/* 어느 화면에서든 검증 결과로 갈 수 있어야 한다 */}
+          <a
+            href="/verify"
+            title="AI가 금액을 만들지 못하도록 막았는지 측정한 결과"
+            className="flex items-center gap-1 rounded-full border border-gray-200 bg-white px-2.5 py-1.5 text-xs font-medium text-gray-600 transition hover:bg-gray-50"
+          >
+            <span aria-hidden>🔒</span>
+            <span className="hidden sm:inline">신뢰성 검증</span>
+          </a>
           {view !== "home" && (
             <button
               onClick={goHome}
@@ -246,7 +262,8 @@ export default function Home() {
 
         {view === "home" && (
           <Dashboard
-            profile={profile}
+            profile={activeProfile}
+            previewing={previewing}
             onAsk={send}
             onOpenProfile={() => setPanelOpen(true)}
             onLoadSample={() => setProfile(sampleProfile())}
@@ -292,7 +309,7 @@ export default function Home() {
 
         {view === "forecast" && (
           <Forecast
-            profile={profile}
+            profile={activeProfile}
             onAsk={send}
             onOpenProfile={() => setPanelOpen(true)}
             onOpenSimulator={() => setView("simulator")}
@@ -301,7 +318,7 @@ export default function Home() {
 
         {view === "simulator" && (
           <BudgetSimulator
-            profile={profile}
+            profile={activeProfile}
             setProfile={setProfile}
             onAsk={send}
             onOpenProfile={() => setPanelOpen(true)}

@@ -40,7 +40,9 @@ export function diagnose(alloc: Alloc, monthlyExpense?: number): string {
 
 /** 프로필에서 시뮬레이터 초기값 만들기 */
 export function initialAlloc(p: ProfileStore): { total: number; alloc: Alloc } {
-  const total = p.finance.settlement ?? p.finance.balance ?? 0;
+  // 나눌 수 있는 건 '지금 가진 돈'이다. 정착금 총액을 기준으로 삼으면
+  // 이미 보증금 등으로 묶인 돈까지 배분하라고 하게 된다.
+  const total = p.finance.balance ?? p.finance.settlement ?? 0;
   const a = p.finance.alloc;
   if (a && (a.emergency || a.living || a.saving)) {
     return { total, alloc: { emergency: a.emergency || 0, living: a.living || 0, saving: a.saving || 0 } };

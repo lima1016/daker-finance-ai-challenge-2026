@@ -8,6 +8,8 @@ import { computeReadiness, readinessGrade, type Readiness } from "@/lib/readines
 import { buildForecast, depletionLabel } from "@/lib/forecast";
 import { cachedPost } from "@/lib/requestCache";
 import { RadarChart } from "./charts";
+import { ProblemIntro, PreviewBanner } from "./ProblemIntro";
+import { TrustBadge } from "./TrustBadge";
 
 const FEATURES = [
   {
@@ -74,6 +76,8 @@ interface AiBriefing {
 
 type Props = {
   profile: ProfileStore;
+  /** 아직 내 정보가 없어 예시 데이터를 보여주는 중인지 */
+  previewing?: boolean;
   onAsk: (text: string) => void;
   onOpenProfile: () => void;
   onLoadSample: () => void;
@@ -83,6 +87,7 @@ type Props = {
 
 export function Dashboard({
   profile,
+  previewing = false,
   onAsk,
   onOpenProfile,
   onLoadSample,
@@ -93,6 +98,7 @@ export function Dashboard({
   const f = profile.finance;
   const dday = s.endDate ? computeDday(s.endDate) : null;
   const net = s.income != null && s.expense != null ? s.income - s.expense : null;
+  // 예시 데이터도 '채워진' 프로필이므로 대시보드는 그대로 그린다
   const filled = hasProfile(profile);
   const name = s.nickname?.trim();
 
@@ -142,12 +148,19 @@ export function Dashboard({
 
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-5">
-      <div className="pt-1">
-        <h2 className="text-xl font-bold text-gray-800">
-          {name ? `${name}님, 안녕하세요` : "안녕하세요"}
-        </h2>
-        <p className="text-sm text-gray-500">{greeting || "오늘도 새봄이 곁에서 도와드릴게요."}</p>
-      </div>
+      {/* 처음 온 사람에게는 '왜 이 앱인가'를 먼저 보여준다 */}
+      {previewing && <ProblemIntro onStart={onOpenProfile} onSample={onLoadSample} />}
+
+      {previewing ? (
+        <PreviewBanner onStart={onOpenProfile} />
+      ) : (
+        <div className="pt-1">
+          <h2 className="text-xl font-bold text-gray-800">
+            {name ? `${name}님, 안녕하세요` : "안녕하세요"}
+          </h2>
+          <p className="text-sm text-gray-500">{greeting || "오늘도 새봄이 곁에서 도와드릴게요."}</p>
+        </div>
+      )}
 
       {!filled ? (
         <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
@@ -162,9 +175,6 @@ export function Dashboard({
               className="rounded-full bg-emerald-600 px-3 py-1 text-xs font-medium text-white"
             >
               내 정보 입력하기 →
-            </button>
-            <button onClick={onLoadSample} className="text-xs text-emerald-700 underline">
-              샘플로 둘러보기
             </button>
             <button onClick={onLoadFromDb} className="text-xs text-emerald-700 underline">
               DB에서 불러오기
@@ -290,7 +300,10 @@ function ReadinessPanel({
         </div>
 
         <div className="min-w-0 flex-1">
-          <div className="text-[11px] font-semibold text-gray-500">자립 준비도</div>
+          <div className="flex flex-wrap items-center gap-1.5">
+            <span className="text-[11px] font-semibold text-gray-500">자립 준비도</span>
+            <TrustBadge kind="calc" text="규칙 채점" />
+          </div>
           <div className="flex items-baseline gap-1.5">
             <span className="text-3xl font-bold text-emerald-800">{readiness.score}</span>
             <span className="text-sm text-gray-400">/ 100</span>

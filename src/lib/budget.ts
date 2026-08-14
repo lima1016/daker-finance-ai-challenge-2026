@@ -22,7 +22,8 @@ const DEFAULT_EXPENSE = 1_000_000; // 월 지출 미입력 시 기본값
  * 반환값의 items 합계는 항상 total과 일치.
  */
 export function computeAllocation(p: ProfileStore): BudgetResult | null {
-  const total = p.finance.settlement ?? p.finance.balance;
+  // 나눌 수 있는 건 '지금 가진 돈' (simulator.ts의 기준과 같아야 한다)
+  const total = p.finance.balance ?? p.finance.settlement;
   if (!total || total <= 0) return null;
 
   const expense = p.status.expense && p.status.expense > 0 ? p.status.expense : DEFAULT_EXPENSE;

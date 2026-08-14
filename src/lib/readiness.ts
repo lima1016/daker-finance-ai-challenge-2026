@@ -22,12 +22,13 @@ export interface Readiness {
 
 const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
 
+// 위에서부터 먼저 걸리는 규칙이 적용된다 (profile.ts의 HOUSING_OPTIONS와 짝을 이룸)
 const HOUSING_RULES: [RegExp, number, string][] = [
-  [/LH|임대|공공|매입|전세임대/, 85, "공공임대는 주거비 부담이 낮아요"],
+  [/고시원|친척|지인|없음|미정/, 20, "주거가 불안정하면 다른 계획도 흔들려요"],
+  [/LH|공공임대|매입|전세임대/, 85, "공공임대는 주거비 부담이 낮아요"],
   [/자립생활관|그룹홈|기숙/, 70, "당장은 안정적이지만 기간이 정해져 있어요"],
   [/전세/, 65, "전세는 월 부담이 적은 편이에요"],
   [/원룸|월세/, 45, "월세는 매달 고정 지출이 커요"],
-  [/고시원|친척|지인|없음|미정/, 20, "주거가 불안정하면 다른 계획도 흔들려요"],
 ];
 
 function housingScore(housing?: string): Axis {
@@ -46,12 +47,13 @@ function incomeScore(p: ProfileStore): Axis {
   let base: number;
   let hint: string;
 
-  if (/정규|재직|직장|근무|취업/.test(work)) {
-    base = 80;
-    hint = "안정적인 소득이 있어요";
-  } else if (/계약|파트|아르바이트|알바|단기/.test(work)) {
+  // 계약직·아르바이트를 먼저 걸러야 '계약직 재직'이 정규직으로 잡히지 않는다
+  if (/계약|파견|파트|아르바이트|알바|단기/.test(work)) {
     base = 50;
     hint = "소득이 있지만 끊길 위험이 있어요";
+  } else if (/정규|재직|직장|근무|취업/.test(work)) {
+    base = 80;
+    hint = "안정적인 소득이 있어요";
   } else if (/구직|준비|학생|훈련/.test(work)) {
     base = 25;
     hint = "아직 소득이 불안정해요";

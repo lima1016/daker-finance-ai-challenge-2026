@@ -24,18 +24,54 @@ export interface ProfileStore {
 
 export const DEFAULT_PROFILE: ProfileStore = { status: {}, finance: {} };
 
-/** 데모용 샘플 사용자 ('김새봄') — 보호종료 D-34, 정착금 1,500만원 */
+// 주거·근로 상태는 자립 준비도 채점(readiness.ts)과 배분 규칙(budget.ts)이
+// 문자열로 판별한다. 자유 입력이면 "회사 다님" 같은 값이 어디에도 걸리지 않아
+// 점수가 엉뚱하게 나오므로, 선택지를 고정해 채점이 항상 맞도록 한다.
+// ⚠️ 항목을 바꾸면 readiness.ts의 판별 규칙도 함께 확인할 것.
+export const HOUSING_OPTIONS = [
+  "LH·공공임대",
+  "전세",
+  "원룸·월세",
+  "자립생활관·그룹홈",
+  "기숙사",
+  "고시원·친척집",
+  "아직 미정",
+] as const;
+
+export const WORK_OPTIONS = [
+  "정규직 재직",
+  "계약직·파견",
+  "아르바이트·단기",
+  "구직 중",
+  "학생·직업훈련 중",
+] as const;
+
+/**
+ * 데모용 샘플 사용자 '김새봄' — 보호종료 60일차.
+ *
+ * 실태조사에서 가장 흔한 상황을 그대로 옮겼다.
+ * 정착금 1,500만원을 받았지만 원룸 보증금으로 1,000만원이 묶였고,
+ * 아직 취업 전이라 매달 조금씩 잔액이 줄어든다.
+ * (가장 큰 어려움 1위가 '거주할 집 문제', 2위가 '생활비 부족'이다)
+ */
 export function sampleProfile(): ProfileStore {
   const end = new Date();
-  end.setDate(end.getDate() + 34);
+  end.setDate(end.getDate() - 60);
   const endDate = end.toISOString().slice(0, 10);
   return {
-    status: { nickname: "김새봄", endDate, housing: "원룸 월세", work: "구직 중", income: 1200000, expense: 900000 },
+    status: {
+      nickname: "김새봄",
+      endDate,
+      housing: "원룸·월세",
+      work: "아르바이트·단기",
+      income: 400_000,
+      expense: 1_250_000,
+    },
     finance: {
-      settlement: 15000000,
-      allowance: 500000,
-      balance: 13000000,
-      alloc: { emergency: 4500000, living: 6000000, saving: 4500000 },
+      settlement: 15_000_000, // 받은 총액
+      allowance: 500_000,
+      balance: 4_000_000, // 보증금으로 묶이고 남은 현금
+      alloc: { emergency: 1_000_000, living: 3_000_000, saving: 0 },
     },
   };
 }

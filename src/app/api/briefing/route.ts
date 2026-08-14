@@ -6,6 +6,7 @@ import { buildBriefing, type BriefingItem } from "@/lib/briefing";
 import { computeReadiness, readinessContext } from "@/lib/readiness";
 import { buildForecast, forecastContext } from "@/lib/forecast";
 import { buildProfileContext, DEFAULT_PROFILE, type ProfileStore } from "@/lib/profile";
+import { cached, cacheKey } from "@/lib/serverCache";
 
 const BRIEFING_INSTRUCTION = `# 오늘의 브리핑 모드
 이 사람이 앱을 열었을 때 가장 먼저 봐야 할 것을 골라 줍니다. 질문을 기다리지 말고 먼저 챙겨주세요.
@@ -69,20 +70,28 @@ export async function POST(req: Request) {
   // 사용자를 막고 있지 않으므로, 멈춘 시도를 끊고 한 번 더 걸 만큼의 예산을 준다.
   const BUDGET_MS = 50_000;
 
+  // 예시 데이터로 첫 화면을 채우기 때문에, 방문자가 많으면 같은 프로필로 같은 요청이 반복된다.
+  // 상황이 같으면 결과도 같으니 잠시 재사용해 무료 할당량을 아낀다.
+  const CACHE_MS = 20 * 60_000;
+
   const startedAt = Date.now();
   const [briefingRes, coachRes] = await Promise.allSettled([
-    generateObject<BriefingResponse>({
-      system: [SYSTEM_PROMPT, BRIEFING_INSTRUCTION, grounding].filter(Boolean).join("\n\n"),
-      prompt: `${situation}\n\n오늘 이 사람이 먼저 봐야 할 것을 골라 주세요.`,
-      schema: BRIEFING_SCHEMA,
-      timeoutMs: BUDGET_MS,
-    }),
-    generateObject<CoachResponse>({
-      system: [SYSTEM_PROMPT, COACH_INSTRUCTION, grounding].filter(Boolean).join("\n\n"),
-      prompt: `${situation}\n\n가장 약한 축인 '${readiness.weakest.label}'을(를) 올릴 방법을 알려주세요.`,
-      schema: COACH_SCHEMA,
-      timeoutMs: BUDGET_MS,
-    }),
+    cached(cacheKey("briefing", situation), CACHE_MS, () =>
+      generateObject<BriefingResponse>({
+        system: [SYSTEM_PROMPT, BRIEFING_INSTRUCTION, grounding].filter(Boolean).join("\n\n"),
+        prompt: `${situation}\n\n오늘 이 사람이 먼저 봐야 할 것을 골라 주세요.`,
+        schema: BRIEFING_SCHEMA,
+        timeoutMs: BUDGET_MS,
+      }),
+    ),
+    cached(cacheKey("coach", situation), CACHE_MS, () =>
+      generateObject<CoachResponse>({
+        system: [SYSTEM_PROMPT, COACH_INSTRUCTION, grounding].filter(Boolean).join("\n\n"),
+        prompt: `${situation}\n\n가장 약한 축인 '${readiness.weakest.label}'을(를) 올릴 방법을 알려주세요.`,
+        schema: COACH_SCHEMA,
+        timeoutMs: BUDGET_MS,
+      }),
+    ),
   ]);
 
   // 실패해도 규칙 기반으로 내려가지만, 왜 실패했는지는 남겨야 고칠 수 있다

@@ -12,6 +12,7 @@ import {
 } from "@/lib/cards";
 import { depletionLabel } from "@/lib/forecast";
 import { BalanceChart, RadarChart, RiskGauge, SERIES_COLORS } from "./charts";
+import { TrustBadge } from "./TrustBadge";
 
 const Shell = ({
   label,
@@ -41,7 +42,12 @@ function BudgetCard({ card }: { card: BudgetCardT }) {
     <Shell
       label="목돈 배분"
       tone="border-emerald-100"
-      right={<span className="text-sm font-bold text-emerald-700">총 {formatMan(total)}</span>}
+      right={
+        <span className="flex items-center gap-1.5">
+          <TrustBadge kind="calc" text="규칙 계산" />
+          <span className="text-sm font-bold text-emerald-700">총 {formatMan(total)}</span>
+        </span>
+      }
     >
       <div className="flex flex-col gap-2">
         {card.items.map((it, idx) => {
@@ -160,10 +166,17 @@ export function ForecastCard({ card }: { card: ForecastCardT }) {
         )}
       </div>
 
+      <div className="mb-1 flex items-center gap-1.5">
+        <TrustBadge kind="calc" text="곡선·소진 시점은 앱이 계산" />
+      </div>
       <BalanceChart labels={card.labels} series={card.series} />
 
       {card.series.length > 1 && (
         <ul className="mt-2 flex flex-col gap-1.5 border-t border-gray-100 pt-2">
+          <li className="flex items-center gap-1.5">
+            <TrustBadge kind="ai" text="AI가 제안한 시나리오" />
+            <span className="text-[10px] text-gray-400">— 무엇을 바꿀지만 AI가 정하고, 결과는 앱이 계산</span>
+          </li>
           {card.series.slice(1).map((s, i) => {
             const w = depletionLabel(s.depletionMonth);
             return (
@@ -187,9 +200,10 @@ export function ForecastCard({ card }: { card: ForecastCardT }) {
       )}
 
       {card.insight && (
-        <p className="mt-2 rounded-lg bg-emerald-50 p-2 text-[12px] leading-relaxed text-emerald-900">
-          ✨ {card.insight}
-        </p>
+        <div className="mt-2 rounded-lg bg-sky-50 p-2">
+          <TrustBadge kind="ai" />
+          <p className="mt-1 text-[12px] leading-relaxed text-sky-950">{card.insight}</p>
+        </div>
       )}
     </Shell>
   );
@@ -201,9 +215,12 @@ export function RadarCardView({ card }: { card: RadarCardT }) {
       label={card.title || "자립 준비도"}
       tone="border-emerald-100"
       right={
-        <span className="text-sm font-bold text-emerald-700">
-          {card.score}
-          <span className="text-xs font-normal text-gray-400">/100</span>
+        <span className="flex items-center gap-1.5">
+          <TrustBadge kind="calc" text="규칙 채점" />
+          <span className="text-sm font-bold text-emerald-700">
+            {card.score}
+            <span className="text-xs font-normal text-gray-400">/100</span>
+          </span>
         </span>
       }
     >
@@ -222,9 +239,10 @@ export function RadarCardView({ card }: { card: RadarCardT }) {
         </ul>
       </div>
       {card.advice && (
-        <p className="mt-2 rounded-lg bg-emerald-50 p-2 text-[12px] leading-relaxed text-emerald-900">
-          ✨ {card.advice}
-        </p>
+        <div className="mt-2 rounded-lg bg-sky-50 p-2">
+          <TrustBadge kind="ai" />
+          <p className="mt-1 text-[12px] leading-relaxed text-sky-950">{card.advice}</p>
+        </div>
       )}
     </Shell>
   );
@@ -271,6 +289,9 @@ export function ScanCardView({ card }: { card: ScanCardT }) {
   return (
     <div className={`flex flex-col gap-3 rounded-2xl border ${st.ring} bg-white p-4 shadow-sm`}>
       <div>
+        <div className="mb-1">
+          <TrustBadge kind="ai" text="AI 판독" />
+        </div>
         <div className={`text-base font-bold ${st.head}`}>{card.title}</div>
         <RiskGauge className="mt-2" score={card.score} level={card.level} />
       </div>
@@ -323,7 +344,12 @@ export function ScanCardView({ card }: { card: ScanCardT }) {
         </div>
       )}
 
-      {card.source && <p className="text-[11px] text-gray-400">근거: {card.source}</p>}
+      {card.source && (
+        <p className="flex items-center gap-1.5 text-[11px] text-gray-400">
+          <TrustBadge kind="official" />
+          {card.source}
+        </p>
+      )}
     </div>
   );
 }

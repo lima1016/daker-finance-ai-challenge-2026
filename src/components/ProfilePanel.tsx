@@ -1,7 +1,14 @@
 "use client";
 
 import type { Dispatch, SetStateAction } from "react";
-import { computeDday, sampleProfile, DEFAULT_PROFILE, type ProfileStore } from "@/lib/profile";
+import {
+  computeDday,
+  sampleProfile,
+  DEFAULT_PROFILE,
+  HOUSING_OPTIONS,
+  WORK_OPTIONS,
+  type ProfileStore,
+} from "@/lib/profile";
 import { formatMan } from "@/lib/cards";
 
 type Props = {
@@ -32,6 +39,38 @@ function Field({ label, children }: { label: string; children: React.ReactNode }
 
 const inputCls =
   "rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-400";
+
+/**
+ * 정해진 선택지 중에서 고르는 입력.
+ * 예전에 자유 입력으로 저장된 값(또는 DB에서 불러온 값)이 목록에 없으면
+ * 지워버리지 않고 맨 위에 그대로 남겨 보여준다.
+ */
+function Choice({
+  value,
+  options,
+  onChange,
+}: {
+  value?: string;
+  options: readonly string[];
+  onChange: (v: string | undefined) => void;
+}) {
+  const unknown = value && !options.includes(value) ? value : null;
+  return (
+    <select
+      className={`${inputCls} bg-white`}
+      value={value ?? ""}
+      onChange={(e) => onChange(e.target.value || undefined)}
+    >
+      <option value="">선택해 주세요</option>
+      {unknown && <option value={unknown}>{unknown} (예전 입력)</option>}
+      {options.map((o) => (
+        <option key={o} value={o}>
+          {o}
+        </option>
+      ))}
+    </select>
+  );
+}
 
 export function ProfilePanel({ open, onClose, data, setData, onLoadFromDb }: Props) {
   const s = data.status;
@@ -132,10 +171,14 @@ export function ProfilePanel({ open, onClose, data, setData, onLoadFromDb }: Pro
                 <input type="date" className={inputCls} value={s.endDate ?? ""} onChange={(e) => setStatus({ endDate: e.target.value })} />
               </Field>
               <Field label="주거 상태">
-                <input className={inputCls} value={s.housing ?? ""} onChange={(e) => setStatus({ housing: e.target.value })} placeholder="예) 원룸 월세 / LH임대 / 자립생활관 / 미정" />
+                <Choice
+                  value={s.housing}
+                  options={HOUSING_OPTIONS}
+                  onChange={(housing) => setStatus({ housing })}
+                />
               </Field>
               <Field label="근로 상태">
-                <input className={inputCls} value={s.work ?? ""} onChange={(e) => setStatus({ work: e.target.value })} placeholder="예) 재직 중 / 구직 중 / 학생" />
+                <Choice value={s.work} options={WORK_OPTIONS} onChange={(work) => setStatus({ work })} />
               </Field>
               <div className="grid grid-cols-2 gap-3">
                 <Field label="월 수입 (만원)">

@@ -4,10 +4,11 @@
 -- 가상 사용자 (금액 단위: 원)
 insert into profiles (anon_id, nickname, end_date, housing, work, income, expense, settlement, allowance, balance, alloc, is_demo)
 values
-  ('demo-saebom', '김새봄', current_date + interval '34 days', '원룸 월세', '구직 중',
-   1200000, 900000, 15000000, 500000, 13000000,
-   '{"emergency":4500000,"living":6000000,"saving":4500000}', true),
-  ('demo-haneul', '하늘', current_date - interval '120 days', 'LH임대', '재직 중',
+  -- 정착금은 받았지만 보증금으로 대부분 묶이고, 아직 취업 전이라 매달 적자
+  ('demo-saebom', '김새봄', current_date - interval '60 days', '원룸·월세', '아르바이트·단기',
+   400000, 1250000, 15000000, 500000, 4000000,
+   '{"emergency":1000000,"living":3000000,"saving":0}', true),
+  ('demo-haneul', '하늘', current_date - interval '120 days', 'LH·공공임대', '정규직 재직',
    1800000, 1300000, 10000000, 500000, 7200000,
    '{"emergency":3000000,"living":4000000,"saving":3000000}', true)
 on conflict (anon_id) do nothing;
