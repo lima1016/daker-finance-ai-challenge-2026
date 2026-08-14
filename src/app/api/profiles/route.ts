@@ -16,7 +16,10 @@ export async function GET() {
   const { data, error } = await db
     .from("profiles")
     .select("id, anon_id, nickname, end_date, housing, work, income, expense, settlement, allowance, balance, alloc, is_demo")
-    .order("created_at", { ascending: true });
+    // 시드 데이터는 한 INSERT문으로 들어가 created_at이 완전히 같다.
+    // 그것만으로 정렬하면 순서가 매번 달라져, 앱이 쓰는 profiles[0]이 들쭉날쭉해진다.
+    .order("created_at", { ascending: true })
+    .order("anon_id", { ascending: true });
 
   if (error) {
     console.error("[profiles]", error.message);

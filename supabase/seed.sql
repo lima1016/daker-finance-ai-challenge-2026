@@ -4,7 +4,7 @@
 -- 가상 사용자 (금액 단위: 원)
 insert into profiles (anon_id, nickname, end_date, housing, work, income, expense, settlement, allowance, balance, alloc, is_demo)
 values
-  ('demo-june', '김새봄', current_date + interval '34 days', '원룸 월세', '구직 중',
+  ('demo-saebom', '김새봄', current_date + interval '34 days', '원룸 월세', '구직 중',
    1200000, 900000, 15000000, 500000, 13000000,
    '{"emergency":4500000,"living":6000000,"saving":4500000}', true),
   ('demo-haneul', '하늘', current_date - interval '120 days', 'LH임대', '재직 중',
