@@ -4,6 +4,9 @@ import { buildGrounding } from "@/lib/grounding";
 import { SCAN_SCHEMA } from "@/lib/schema";
 import { normalizeCard, type ScanCard } from "@/lib/cards";
 
+// 배포 플랫폼(Vercel Hobby)의 함수 실행 한도. 아래 예산은 전부 이 안에 들어와야 한다.
+export const maxDuration = 60;
+
 const SCAN_INSTRUCTION = `# 위험 스캐너 모드
 사용자가 붙여넣은 문자·카톡·링크·계약서(텍스트 또는 스크린샷)를 검사합니다.
 
@@ -72,8 +75,11 @@ export async function POST(req: Request) {
       images: image ? [image] : [],
       // 사용자가 명시적으로 기다리는 화면이다. 스크린샷은 글자를 읽어낸 뒤
       // 판정까지 해야 해서 텍스트보다 오래 걸리므로, 한 번의 시도에도 더 여유를 준다.
-      timeoutMs: image ? 75_000 : 45_000,
-      attemptMs: image ? 30_000 : 20_000,
+      //
+      // 예산 상한은 maxDuration(60초)이다. 앞단의 근거 검색과 뒷정리 시간을 남겨야 하므로
+      // 이미지도 48초를 넘기지 않는다. (예전 75초는 한도를 넘겨 504로 잘렸다.)
+      timeoutMs: image ? 48_000 : 30_000,
+      attemptMs: image ? 30_000 : 14_000,
     });
 
     // 하이라이트를 칠할 원문: 직접 입력한 텍스트가 우선, 없으면 이미지에서 읽은 것

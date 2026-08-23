@@ -8,6 +8,9 @@ import { buildForecast, forecastContext } from "@/lib/forecast";
 import { buildProfileContext, DEFAULT_PROFILE, type ProfileStore } from "@/lib/profile";
 import { cached, cacheKey } from "@/lib/serverCache";
 
+// 배포 플랫폼(Vercel Hobby)의 함수 실행 한도. 아래 BUDGET_MS는 이 안에 들어와야 한다.
+export const maxDuration = 60;
+
 const BRIEFING_INSTRUCTION = `# 오늘의 브리핑 모드
 이 사람이 앱을 열었을 때 가장 먼저 봐야 할 것을 골라 줍니다. 질문을 기다리지 말고 먼저 챙겨주세요.
 
@@ -68,7 +71,8 @@ export async function POST(req: Request) {
 
   // 화면은 이미 규칙 기반 브리핑으로 채워져 있고, 결과가 오면 교체된다.
   // 사용자를 막고 있지 않으므로, 멈춘 시도를 끊고 한 번 더 걸 만큼의 예산을 준다.
-  const BUDGET_MS = 50_000;
+  // 두 호출이 병렬이라 벽시계 시간은 이 예산에 근거 검색을 더한 정도다 — maxDuration(60초) 아래로 잡는다.
+  const BUDGET_MS = 42_000;
 
   // 예시 데이터로 첫 화면을 채우기 때문에, 방문자가 많으면 같은 프로필로 같은 요청이 반복된다.
   // 상황이 같으면 결과도 같으니 잠시 재사용해 무료 할당량을 아낀다.

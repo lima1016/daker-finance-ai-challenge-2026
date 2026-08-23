@@ -6,6 +6,9 @@ import { buildForecast, forecastContext, type Scenario } from "@/lib/forecast";
 import { buildProfileContext, DEFAULT_PROFILE, type ProfileStore } from "@/lib/profile";
 import { cached, cacheKey } from "@/lib/serverCache";
 
+// 배포 플랫폼(Vercel Hobby)의 함수 실행 한도. 아래 예산은 이 안에 들어와야 한다.
+export const maxDuration = 60;
+
 const INSTRUCTION = `# 현금흐름 시나리오 모드
 이 사람의 앞으로 24개월 잔액 흐름을 놓고, 시도해볼 만한 what-if 시나리오를 만듭니다.
 
@@ -67,8 +70,9 @@ export async function POST(req: Request) {
         system: [SYSTEM_PROMPT, INSTRUCTION, grounding].filter(Boolean).join("\n\n"),
         prompt: situation,
         schema: SCENARIOS_SCHEMA,
-        // 그래프는 이미 화면에 있고 스피너가 돌고 있으니, 멈춘 시도를 끊고 다시 걸 여유를 준다
-        timeoutMs: 45_000,
+        // 그래프는 이미 화면에 있고 스피너가 돌고 있으니, 멈춘 시도를 끊고 다시 걸 여유를 준다.
+        // 앞단의 근거 검색 시간을 남겨 maxDuration(60초) 안에 들어오게 잡는다.
+        timeoutMs: 40_000,
       }),
     );
 

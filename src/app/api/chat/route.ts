@@ -6,6 +6,10 @@ import { createFenceSplitter } from "@/lib/cards";
 import { buildToolCard } from "@/lib/toolCards";
 import { buildProfileContext, DEFAULT_PROFILE, type ProfileStore } from "@/lib/profile";
 
+// 배포 플랫폼(Vercel Hobby)의 함수 실행 한도에 맞춘다. 명시하지 않으면 플랫폼
+// 기본값에 맡겨지고, 그걸 넘기면 우리 오류 안내 대신 게이트웨이 504가 나간다.
+export const maxDuration = 60;
+
 /**
  * 응답은 NDJSON 이벤트 스트림.
  *   {"t":"text","v":"…"}   텍스트 조각

@@ -24,10 +24,21 @@ const ANTHROPIC_MODEL = process.env.ANTHROPIC_MODEL || "claude-sonnet-4-6";
 // 한 번 할당량이 찬 모델은 한동안 건너뛴다.
 // 기억하지 않으면 매 요청마다 소진된 모델들을 다시 두드리게 된다.
 const QUOTA_COOLDOWN_MS = 30 * 60_000;
+
+// 응답이 아예 안 오고 멈춘 모델은 잠깐만 피한다. 할당량과 달리 금방 풀리는 일이라
+// 30분씩 빼두면 멀쩡한 모델을 오래 버리게 된다.
+const STALL_COOLDOWN_MS = 90_000;
+
 const exhaustedUntil = new Map<string, number>();
 
 function markExhausted(model: string) {
   exhaustedUntil.set(model, Date.now() + QUOTA_COOLDOWN_MS);
+}
+
+/** 멈춰서 끊긴 모델을 짧게 피해 둔다 — 다음 시도가 다른 모델로 가도록 */
+function markStalled(model: string) {
+  const until = Date.now() + STALL_COOLDOWN_MS;
+  if ((exhaustedUntil.get(model) ?? 0) < until) exhaustedUntil.set(model, until);
 }
 
 function configuredModels(): string[] {
@@ -51,6 +62,17 @@ function geminiModels(): string[] {
 function isQuotaError(e: unknown): boolean {
   const msg = e instanceof Error ? e.message : String(e);
   return /\b429\b|RESOURCE_EXHAUSTED|exceeded your current quota/i.test(msg);
+}
+
+/**
+ * 이 모델 이름이 더 이상 없다는 뜻인지 (404).
+ *
+ * 목록에 preview 모델이 섞여 있어서, 심사 기간 중에 조용히 없어질 수 있다.
+ * 그때 첫 모델 하나 때문에 전체가 죽지 않도록 이것도 "다음 모델로" 넘긴다.
+ */
+function isModelUnavailable(e: unknown): boolean {
+  const msg = e instanceof Error ? e.message : String(e);
+  return /\b404\b|NOT_FOUND|is not found|not supported|unsupported/i.test(msg);
 }
 
 /** 현재 선택된 프로바이더의 키가 없으면 안내 메시지를, 있으면 null 반환 */
@@ -110,16 +132,24 @@ export function friendlyError(e: unknown): string {
   return "답변을 만들지 못했어요. 잠시 뒤에 다시 시도해 주세요.";
 }
 
-/** 스트리밍 전체 상한 (긴 답변도 여기까지는 허용) */
-const STREAM_TIMEOUT_MS = 90_000;
+/**
+ * 스트리밍 전체 상한 (긴 답변도 여기까지는 허용).
+ *
+ * Vercel Hobby의 함수 실행 한도가 60초다. 이걸 넘기면 우리 오류 처리가 아니라
+ * 게이트웨이가 504로 끊어서 사용자에게 아무 안내도 못 준다 — 한도 아래로 잡는다.
+ */
+const STREAM_TIMEOUT_MS = 55_000;
 
 /**
  * 첫 글자가 이 시간 안에 오지 않으면 멈춘 것으로 본다.
  *
  * 전체 시간으로 자르면 정상적인 긴 답변까지 죽는다. 반면 '첫 글자'는
  * 정상일 때 몇 초 안에 오므로, 이것만 감시하면 멈춘 호출만 골라낼 수 있다.
+ *
+ * 멈춘 모델은 이제 다음 모델로 넘어가므로, 전체 상한(55초) 안에서 서너 번은
+ * 갈아탈 수 있어야 한다. 그래서 예전 18초보다 짧게 잡았다.
  */
-const FIRST_TOKEN_MS = 18_000;
+const FIRST_TOKEN_MS = 12_000;
 
 // ── 1. 텍스트 전용 스트림 (기존 호환) ─────────────────────────
 
@@ -230,13 +260,20 @@ async function* streamGemini({
   let i = 0;
   let stallRetried = false;
 
+  // 상한은 '요청 전체'에 한 번만 준다. 모델마다 새로 주면 모델 수만큼 곱해져
+  // (5개 × 90초) 플랫폼 실행 한도를 훌쩍 넘긴다.
+  const deadline = Date.now() + STREAM_TIMEOUT_MS;
+
   while (i < models.length) {
+    const remaining = deadline - Date.now();
+    if (remaining <= 0) break;
+
     // 첫 글자 감시 타이머와 전체 상한을 하나의 컨트롤러로 묶는다
     const ctl = new AbortController();
-    const overall = setTimeout(() => ctl.abort(), STREAM_TIMEOUT_MS);
+    const overall = setTimeout(() => ctl.abort(), remaining);
     let firstToken: ReturnType<typeof setTimeout> | null = setTimeout(
       () => ctl.abort(),
-      FIRST_TOKEN_MS,
+      Math.min(FIRST_TOKEN_MS, remaining),
     );
     const gotFirstToken = () => {
       if (firstToken) {
@@ -273,15 +310,28 @@ async function* streamGemini({
       // 이미 답이 나가기 시작했으면 되돌릴 수 없다 (중간부터 다시 쓸 수 없으므로)
       if (started) throw e;
 
-      if (isQuotaError(e)) {
-        markExhausted(models[i]); // 마지막 모델이어도 기억해 둔다
-        if (i < models.length - 1) {
-          console.warn(`[llm] ${models[i]} 할당량 소진 → ${models[i + 1]}로 전환`);
-          i++;
-          continue;
-        }
+      const quota = isQuotaError(e);
+      const stalled = isAborted(e);
+      if (quota) markExhausted(models[i]); // 마지막 모델이어도 기억해 둔다
+      if (stalled) markStalled(models[i]);
+
+      // 할당량(429)이든 과부하(503)든 멈춤이든, "이 모델이 지금 안 된다"는 뜻은 같다.
+      // 예전에는 429에서만 다음 모델로 넘어가서, 첫 모델이 과부하면 남은 모델을
+      // 두고도 요청 전체가 실패했다 — 여러 모델을 걸어둔 의미가 없었다.
+      if ((quota || stalled || isTransient(e) || isModelUnavailable(e)) && i < models.length - 1) {
+        const why = quota
+          ? "할당량 소진"
+          : stalled
+            ? "응답 멈춤"
+            : isModelUnavailable(e)
+              ? "모델 없음"
+              : "일시 오류";
+        console.warn(`[llm] ${models[i]} ${why} → ${models[i + 1]}로 전환`);
+        i++;
+        continue;
       }
-      if (isAborted(e) && !stallRetried) {
+      // 마지막 모델까지 왔는데 멈춘 경우에만, 같은 모델로 한 번 더 걸어 본다
+      if (stalled && !stallRetried) {
         console.warn(`[llm] ${models[i]} 응답이 멈춤 — 같은 모델로 한 번 더 시도`);
         stallRetried = true;
         continue;
@@ -292,6 +342,10 @@ async function* streamGemini({
       gotFirstToken();
     }
   }
+
+  // 여기까지 왔다면 제한 시간을 다 썼다는 뜻이다. 조용히 끝내면 화면에 빈 답이 남으므로
+  // 오류로 알린다 (라우트가 friendlyError로 바꿔 내려보낸다).
+  throw new Error("응답이 제한 시간 안에 오지 않았어요. (timeout)");
 }
 
 // ── 3. 구조화 출력 (JSON 스키마로 강제) ───────────────────────
@@ -329,6 +383,15 @@ function isAborted(e: unknown): boolean {
  */
 const ATTEMPT_MS = 20_000;
 
+/**
+ * 한 번의 시도가 전체 예산을 통째로 먹으면 재시도가 아예 못 돈다.
+ * (예: 예산 15초에 시도 상한 20초 → 첫 시도가 15초를 다 쓰고 남는 시간이 0)
+ * 그래서 기본값은 예산의 절반으로 잘라, 최소 두 번은 시도할 수 있게 한다.
+ */
+function defaultAttemptMs(timeoutMs: number): number {
+  return Math.max(6_000, Math.min(ATTEMPT_MS, Math.floor(timeoutMs / 2)));
+}
+
 const wait = (ms: number) => new Promise((r) => setTimeout(r, ms));
 
 /**
@@ -343,7 +406,7 @@ export async function generateObject<T>({
   schema,
   images = [],
   timeoutMs = 15_000,
-  attemptMs = ATTEMPT_MS,
+  attemptMs = defaultAttemptMs(timeoutMs),
 }: GenerateObjectArgs): Promise<T> {
   const deadline = Date.now() + timeoutMs;
   const call = (signal: AbortSignal) =>
@@ -439,10 +502,20 @@ async function objectGemini<T>({ system, prompt, schema, images, signal }: Objec
       });
       break;
     } catch (e) {
-      if (!isQuotaError(e)) throw e;
-      markExhausted(models[i]); // 마지막 모델이어도 기억해 둔다
+      // 우리가 건 제한 시간에 걸린 것이라면 다음 모델도 같은 신호로 즉시 끊긴다.
+      // 여기서 돌지 말고, 멈춘 모델만 표시해 두고 바깥 재시도에 맡긴다.
+      if (isAborted(e)) {
+        markStalled(models[i]);
+        throw e;
+      }
+      const quota = isQuotaError(e);
+      const gone = isModelUnavailable(e);
+      // 429만 넘기면 첫 모델이 과부하(503)일 때 남은 모델을 두고도 요청이 실패한다
+      if (!quota && !gone && !isTransient(e)) throw e;
+      if (quota) markExhausted(models[i]); // 마지막 모델이어도 기억해 둔다
       if (i === models.length - 1) throw e;
-      console.warn(`[llm] ${models[i]} 할당량 소진 → ${models[i + 1]}로 전환`);
+      const why = quota ? "할당량 소진" : gone ? "모델 없음" : "일시 오류";
+      console.warn(`[llm] ${models[i]} ${why} → ${models[i + 1]}로 전환`);
     }
   }
   if (!res) throw new Error("응답을 받지 못했어요.");
