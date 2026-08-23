@@ -39,7 +39,7 @@ export async function GET() {
       })();
       return NextResponse.json(
         {
-          error: `Supabase 서버(${host})에 연결하지 못했어요. 프로젝트가 삭제·중지되었거나 주소가 잘못됐을 수 있어요. DB 없이도 '내 정보 입력하기'와 '샘플로 둘러보기'는 그대로 쓸 수 있어요.`,
+          error: `Supabase 서버(${host})에 연결하지 못했어요. 프로젝트가 삭제·중지되었거나 주소가 잘못됐을 수 있어요. DB 없이도 내 정보를 직접 입력하거나 '샘플 데이터' 버튼으로 그대로 둘러볼 수 있어요.`,
         },
         { status: 503 },
       );
