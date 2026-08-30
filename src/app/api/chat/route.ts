@@ -1,9 +1,11 @@
-import { SYSTEM_PROMPT, CARD_TOOLS_PROMPT, type ChatMessage } from "@/lib/prompt";
+import { SYSTEM_PROMPT, CHAT_FORMAT_PROMPT, CARD_TOOLS_PROMPT, type ChatMessage } from "@/lib/prompt";
 import { streamAssistant, llmConfigError, friendlyError } from "@/lib/llm";
 import { buildGrounding } from "@/lib/grounding";
 import { CARD_TOOLS } from "@/lib/schema";
 import { createFenceSplitter } from "@/lib/cards";
-import { buildToolCard } from "@/lib/toolCards";
+import { createLeakFilter } from "@/lib/sanitize";
+import type { Card } from "@/lib/cards";
+import { buildToolCard, cardLeadIn } from "@/lib/toolCards";
 import { buildProfileContext, DEFAULT_PROFILE, type ProfileStore } from "@/lib/profile";
 
 // 배포 플랫폼(Vercel Hobby)의 함수 실행 한도에 맞춘다. 명시하지 않으면 플랫폼
@@ -42,6 +44,7 @@ export async function POST(req: Request) {
 
   const system = [
     SYSTEM_PROMPT,
+    CHAT_FORMAT_PROMPT, // 목록·굵게는 대화에서만 (구조화 출력에 섞이면 JSON이 지저분해진다)
     CARD_TOOLS_PROMPT, // 카드 도구는 대화에서만 쓴다
     profileText ? `# 사용자 정보 (이 사람 상황에 맞춰 답하세요)\n${profileText}` : "",
     grounding,
@@ -55,11 +58,23 @@ export async function POST(req: Request) {
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
       const splitter = createFenceSplitter();
+      // 모델이 도구 호출 흉내를 본문에 흘릴 때가 있다 — 화면에 나가기 전에 지운다
+      const leak = createLeakFilter();
       let cardCount = 0;
+      let textLength = 0;
+      let firstCard: Card["type"] | null = null;
+
+      const emitText = (raw: string) => {
+        const clean = leak.feed(raw);
+        if (!clean) return;
+        textLength += clean.trim().length;
+        controller.enqueue(line({ t: "text", v: clean }));
+      };
 
       const emitCard = (card: unknown) => {
         if (cardCount >= 2) return; // 한 답변에 카드 폭주 방지
         cardCount++;
+        if (!firstCard) firstCard = (card as Card).type;
         controller.enqueue(line({ t: "card", v: card }));
       };
 
@@ -68,7 +83,7 @@ export async function POST(req: Request) {
           if (ev.t === "text") {
             // 모델이 도구 대신 예전 방식(코드펜스)을 쓰더라도 받아준다
             for (const seg of splitter.feed(ev.v)) {
-              if (seg.kind === "text") controller.enqueue(line({ t: "text", v: seg.text }));
+              if (seg.kind === "text") emitText(seg.text);
               else emitCard(seg.card);
             }
           } else {
@@ -77,7 +92,18 @@ export async function POST(req: Request) {
           }
         }
         for (const seg of splitter.flush()) {
-          if (seg.kind === "text") controller.enqueue(line({ t: "text", v: seg.text }));
+          if (seg.kind === "text") emitText(seg.text);
+        }
+        const tail = leak.flush();
+        if (tail) {
+          textLength += tail.trim().length;
+          controller.enqueue(line({ t: "text", v: tail }));
+        }
+
+        // 모델이 설명 없이 도구만 부르는 일이 있다. 그러면 카드가 덩그러니 뜬다.
+        // 화면은 글을 먼저, 카드를 뒤에 그리므로 지금 보내도 카드 위에 붙는다.
+        if (textLength === 0 && firstCard) {
+          controller.enqueue(line({ t: "text", v: cardLeadIn(firstCard) }));
         }
       } catch (e) {
         controller.enqueue(line({ t: "error", v: friendlyError(e) }));

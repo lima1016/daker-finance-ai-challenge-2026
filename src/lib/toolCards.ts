@@ -58,3 +58,27 @@ export function buildToolCard(
       return null;
   }
 }
+
+/**
+ * 글 없이 카드만 나갈 때 앞에 붙일 한 문장.
+ *
+ * 프롬프트로 "카드 전에 한두 문장을 먼저 쓰라"고 시켜도 모델이 가끔 무시하고
+ * 도구만 호출한다. 그러면 화면에 카드가 설명 없이 덩그러니 뜬다.
+ * 카드가 보인다는 사실 자체는 말하지 않는다 — 사용자에게는 이미 보인다.
+ */
+export function cardLeadIn(type: Card["type"]): string {
+  switch (type) {
+    case "budget":
+      return "목돈을 용도별로 나누면 이렇게 됩니다. 비상금부터 먼저 떼어 두는 것이 안전해요.";
+    case "forecast":
+      return "지금 흐름이 이어지면 잔액이 어떻게 움직이는지 짚어봤어요.";
+    case "radar":
+      return "지금 자립 준비 상태를 항목별로 살펴봤어요. 가장 낮은 곳부터 손보면 좋습니다.";
+    case "timeline":
+      return "지금 상황에서 챙기면 좋은 순서를 정리했어요.";
+    case "risk":
+      return "말씀하신 내용에서 조심해야 할 신호가 보여요.";
+    case "scan":
+      return "보내주신 내용을 살펴봤어요.";
+  }
+}

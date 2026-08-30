@@ -5,6 +5,7 @@ import type { ChatMessage, ChatRole } from "@/lib/prompt";
 import type { Card } from "@/lib/cards";
 import type { BriefingAction } from "@/lib/briefing";
 import { CardView } from "@/components/Cards";
+import { Markdown } from "@/components/Markdown";
 import { ProfilePanel } from "@/components/ProfilePanel";
 import { Dashboard } from "@/components/Dashboard";
 import { RiskScanner } from "@/components/RiskScanner";
@@ -276,27 +277,34 @@ export default function Home() {
           <div className="mx-auto flex max-w-2xl flex-col gap-3">
             {messages.map((m, i) => {
               const empty = m.blocks.length === 0;
+              // 모델은 문장을 쓰다 말고 도구를 부른다. 블록 순서대로 그리면 카드가
+              // 단어 한가운데를 자른다("…안내해 드" [카드] "립니다.").
+              // 그래서 글은 전부 이어 붙이고, 카드는 언제 왔든 글 뒤에 놓는다.
+              const text = m.blocks
+                .map((b) => (b.kind === "text" ? b.text : ""))
+                .join("")
+                .trim();
+              const cards = m.blocks.flatMap((b) => (b.kind === "card" ? [b.card] : []));
               return (
                 <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
                   <div
                     className={
                       m.role === "user"
-                        ? "max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-emerald-600 px-4 py-2.5 text-sm text-white"
-                        : "flex w-full max-w-[92%] flex-col gap-1 rounded-2xl rounded-bl-sm border border-gray-100 bg-white px-4 py-2.5 text-sm text-gray-800 shadow-sm"
+                        ? "max-w-[85%] whitespace-pre-wrap rounded-2xl rounded-br-sm bg-emerald-600 px-4 py-2.5 text-sm leading-6 text-white"
+                        : "flex w-full max-w-[92%] flex-col gap-3 rounded-2xl rounded-bl-sm border border-gray-100 bg-white px-4 py-3 text-[14px] text-gray-800 shadow-sm"
                     }
                   >
                     {empty && loading && i === messages.length - 1 ? (
                       <span className="text-gray-400">…</span>
+                    ) : m.role === "user" ? (
+                      text
                     ) : (
-                      m.blocks.map((b, j) =>
-                        b.kind === "text" ? (
-                          <p key={j} className="whitespace-pre-wrap">
-                            {b.text.trim()}
-                          </p>
-                        ) : (
-                          <CardView key={j} card={b.card} />
-                        ),
-                      )
+                      <>
+                        <Markdown text={text} />
+                        {cards.map((card, j) => (
+                          <CardView key={j} card={card} />
+                        ))}
+                      </>
                     )}
                   </div>
                 </div>
