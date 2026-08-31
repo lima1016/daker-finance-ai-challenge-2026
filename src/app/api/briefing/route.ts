@@ -2,7 +2,7 @@ import { SYSTEM_PROMPT } from "@/lib/prompt";
 import { generateObject, llmConfigError } from "@/lib/llm";
 import { buildGrounding } from "@/lib/grounding";
 import { BRIEFING_SCHEMA, COACH_SCHEMA } from "@/lib/schema";
-import { buildBriefing, type BriefingItem } from "@/lib/briefing";
+import { buildBriefing, type BriefingItem, briefingProfile } from "@/lib/briefing";
 import { computeReadiness, readinessContext } from "@/lib/readiness";
 import { buildForecast, forecastContext } from "@/lib/forecast";
 import { buildProfileContext, DEFAULT_PROFILE, type ProfileStore } from "@/lib/profile";
@@ -54,7 +54,8 @@ export async function POST(req: Request) {
 
   if (llmConfigError()) return Response.json(fallback);
 
-  const profileText = buildProfileContext(profile);
+  // 닉네임·거주 지역은 브리핑 내용을 바꾸지 않는다. 프롬프트와 캐시 키 양쪽에서 뺀다
+  const profileText = buildProfileContext(briefingProfile(profile));
   const forecast = buildForecast(profile, []);
   const situation = [
     profileText ? `# 사용자 정보\n${profileText}` : "",

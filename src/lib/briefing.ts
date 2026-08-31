@@ -17,6 +17,38 @@ export interface BriefingItem {
   prompt?: string; // action === "chat" 일 때 보낼 질문
 }
 
+/**
+ * 브리핑을 좌우하는 값만 뽑은 지문(指紋).
+ *
+ * 캐시 키로 프로필 전체를 쓰면 닉네임·거주 지역만 바꿔도 AI가 브리핑을 다시 만든다.
+ * 그러면 사용자 눈에는 "상관없는 걸 건드렸는데 오늘 챙길 것이 통째로 바뀌는" 일이 생긴다.
+ * 실제로 브리핑을 바꾸는 값(보호종료일·수입·지출·잔액·주거·근로·배분)만 넣는다.
+ */
+export function briefingSignature(p: ProfileStore): string {
+  const s = p.status;
+  const f = p.finance;
+  const a = f.alloc;
+  return JSON.stringify([
+    s.endDate ?? null,
+    s.housing ?? null,
+    s.work ?? null,
+    s.income ?? null,
+    s.expense ?? null,
+    f.settlement ?? null,
+    f.allowance ?? null,
+    f.balance ?? null,
+    a ? [a.emergency ?? 0, a.living ?? 0, a.saving ?? 0] : null,
+  ]);
+}
+
+/** 브리핑 프롬프트·캐시에서 제외할 값을 지운 프로필 (닉네임·거주 지역) */
+export function briefingProfile(p: ProfileStore): ProfileStore {
+  const status = { ...p.status };
+  delete status.nickname;
+  delete status.region;
+  return { status, finance: p.finance };
+}
+
 export function buildBriefing(p: ProfileStore): BriefingItem[] {
   const items: BriefingItem[] = [];
   const s = p.status;
@@ -53,7 +85,7 @@ export function buildBriefing(p: ProfileStore): BriefingItem[] {
   if (readiness.filled && readiness.weakest.value < 50) {
     items.push({
       tone: "info",
-      title: `${readiness.weakest.label}이(가) 가장 약해요`,
+      title: `${readiness.weakest.label} 점수가 가장 낮아요`,
       desc: readiness.weakest.hint,
       action: "chat",
       prompt: `제 자립 준비도에서 ${readiness.weakest.label} 점수가 낮게 나왔어요. 어떻게 올릴 수 있을까요?`,
