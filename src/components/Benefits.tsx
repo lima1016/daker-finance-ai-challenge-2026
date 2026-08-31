@@ -44,6 +44,11 @@ function BenefitCard({
         <span className="rounded-full bg-ground px-2.5 py-1 text-[11px] font-bold text-ink3">
           {CATEGORY_LABEL[b.category]}
         </span>
+        {b.regions && (
+          <span className="rounded-full bg-brand-bg px-2.5 py-1 text-[11px] font-bold text-brand">
+            {b.regions.join("·")} 전용
+          </span>
+        )}
         {b.regional && (
           <span className="rounded-full bg-ground px-2.5 py-1 text-[11px] font-bold text-ink3">
             {profile.status.region?.trim() ? `${profile.status.region} 기준` : "지역별로 다름"}

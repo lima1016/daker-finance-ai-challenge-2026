@@ -63,6 +63,8 @@ export interface Benefit {
   caution?: string;
   /** 지역에 따라 금액·기관이 달라지는 제도 (화면에 '지역별' 표시) */
   regional?: boolean;
+  /** 특정 시·도에서만 하는 사업. 거주 지역을 알면 해당 지역 것만 보여준다 */
+  regions?: string[];
   /** 이 사람에게 특히 급한 제도인지 — 규칙 기반 (AI 아님) */
   urgentFor?: (p: ProfileStore) => boolean;
   /** 지역 등 프로필에 따라 금액이 갈릴 때. null이면 위의 amount를 그대로 쓴다 */
@@ -137,6 +139,52 @@ export const BENEFITS: Benefit[] = [
     category: "housing",
     caution: "전세임대는 2년마다 최대 14회까지 재계약할 수 있고, 4회를 넘기면 소득·자산 기준을 충족해야 합니다",
     urgentFor: unstableHousing,
+  },
+  {
+    id: "seoul-housing",
+    name: "서울시 자립준비청년 주거비 지원",
+    summary: "월세·기숙사비를 서울시가 따로 보태주는 사업",
+    amount: "월 최대 20만원",
+    target: "서울 거주, 보호종료 5년 이내 자립준비청년",
+    how: "관할 동주민센터 또는 서울시 아동담당관에 문의",
+    tel: "02-2133-5196",
+    url: "https://www.seoul.go.kr/policy/view.do?id=69&lan=KO",
+    source: "서울특별시",
+    checkedAt: "2026-08-31",
+    category: "housing",
+    regions: ["서울"],
+    caution: "국가 지원(LH·자립수당)과 별개로 서울시가 자체 시행하는 사업이에요. 예산에 따라 모집 시기가 정해지니 신청 전에 꼭 확인하세요",
+    urgentFor: unstableHousing,
+  },
+  {
+    id: "gyeonggi-housing",
+    name: "경기도 자립준비청년 주거비 지원",
+    summary: "실제 내는 월세를 경기도가 보태주는 사업",
+    amount: "월 최대 20만원 (생애 1회, 최대 24개월)",
+    target: "경기 거주, 시설·가정위탁 퇴소 5년 이내 자립준비청년 (연령 무관)",
+    how: "경기청년포털에서 공고 확인 후 신청. 경기도 주택정책과에 문의할 수 있어요",
+    tel: "031-8008-3228",
+    url: "https://youth.gg.go.kr/gg/info/housing-welfare.do",
+    source: "경기도",
+    checkedAt: "2026-08-31",
+    category: "housing",
+    regions: ["경기"],
+    caution: "주거 형태에 따라 소득 기준이 달라요(행복주택·통합공공임대는 기준 있음, 매입·전세임대는 무관). 공고문에서 올해 기준을 확인하세요",
+    urgentFor: unstableHousing,
+  },
+  {
+    id: "local-youth",
+    name: "우리 지역 청년 지원사업",
+    summary: "시·도마다 따로 하는 청년 사업이 있어요",
+    amount: "지자체마다 다름",
+    target: "해당 지역에 사는 청년",
+    how: "복지로에서 지역을 골라 검색하거나, 자립지원전담기관에 물어보세요",
+    url: "https://www.bokjiro.go.kr/",
+    source: "복지로",
+    checkedAt: "2026-08-31",
+    category: "support",
+    regional: true,
+    caution: "새봄이 아직 확인한 지자체는 서울·경기뿐이에요. 다른 지역은 복지로나 전담기관에서 직접 확인해 주세요",
   },
   {
     id: "cda",
@@ -215,7 +263,11 @@ export const BENEFITS: Benefit[] = [
  * 목록에서 빠지면 "그런 제도가 있는 줄도 몰랐다"가 그대로 반복되기 때문.
  */
 export function sortBenefits(p: ProfileStore, list: Benefit[] = BENEFITS): Benefit[] {
-  return [...list].sort((a, b) => {
+  const region = p.status.region?.trim();
+  // 지역 한정 사업은 그 지역 사람에게만 보여준다. 지역을 모르면 전부 보여준다 —
+  // 모르는 채로 감추면 "그런 게 있는 줄도 몰랐다"가 그대로 반복된다.
+  const visible = list.filter((b) => !b.regions || !region || b.regions.includes(region));
+  return [...visible].sort((a, b) => {
     const av = a.urgentFor?.(p) ? 0 : 1;
     const bv = b.urgentFor?.(p) ? 0 : 1;
     return av - bv;
