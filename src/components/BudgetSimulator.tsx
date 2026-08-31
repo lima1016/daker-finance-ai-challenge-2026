@@ -27,7 +27,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
     return (
       <div className="mx-auto max-w-2xl">
         <h1 className="text-[24px] font-extrabold tracking-[-0.03em] text-ink">목돈 배분 시뮬레이터</h1>
-        <div className="mt-4 rounded-2xl border border-line bg-brand-bg p-4 text-[13px] text-brand">
+        <div className="mt-4 rounded-2xl bg-brand-bg p-4 text-[13px] text-brand">
           먼저 정착금(또는 현재 잔액) 금액이 필요해요.
           <button onClick={onOpenProfile} className="ml-1 font-medium underline">
             내 정보에서 입력하기

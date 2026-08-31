@@ -74,7 +74,7 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
     return (
       <div className="mx-auto max-w-2xl">
         <h1 className="text-[24px] font-extrabold tracking-[-0.03em] text-ink">현금흐름 예측</h1>
-        <div className="mt-4 rounded-2xl border border-line bg-brand-bg p-4 text-[13px] text-brand">
+        <div className="mt-4 rounded-2xl bg-brand-bg p-4 text-[13px] text-brand">
           예측하려면 {base.missing.join("·")} 정보가 필요해요.
           <button onClick={onOpenProfile} className="ml-1 font-medium underline">
             내 정보에서 입력하기

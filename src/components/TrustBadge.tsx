@@ -47,7 +47,7 @@ export function TrustBadge({ kind, text }: { kind: Kind; text?: string }) {
 export function TrustNote({ className = "" }: { className?: string }) {
   return (
     <div
-      className={`flex items-start gap-2 rounded-2xl border border-line bg-brand-bg p-3 ${className}`}
+      className={`flex items-start gap-2 rounded-2xl bg-brand-bg p-3 ${className}`}
     >
       <Icon name="lock" className="mt-0.5 h-4 w-4 shrink-0 text-brand" />
       <p className="min-w-0 text-[12px] leading-relaxed text-brand">

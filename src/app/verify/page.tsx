@@ -74,7 +74,7 @@ export default function VerifyPage() {
         </div>
 
         {failed.length > 0 && (
-          <div className="mt-3 rounded-xl border border-line bg-alert-bg p-3">
+          <div className="mt-3 rounded-2xl bg-alert-bg p-3">
             <div className="text-[12px] font-bold text-alert">뚫린 경우</div>
             <ul className="mt-1 flex flex-col gap-1">
               {failed.slice(0, 10).map((c, i) => (
@@ -95,7 +95,7 @@ export default function VerifyPage() {
           그려진 값을 비교했습니다.
         </p>
 
-        <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl border border-line bg-brand-bg p-4">
+        <div className="mt-3 flex flex-wrap items-center gap-3 rounded-2xl bg-brand-bg p-4">
           <div>
             <div className="text-3xl font-bold text-brand">{ADVERSARIAL_RUN.mismatches}건</div>
             <div className="text-[13px] font-medium text-brand">화면에 반영된 가짜 금액</div>
@@ -150,13 +150,13 @@ export default function VerifyPage() {
         </p>
 
         <div className="mt-3 grid gap-2 sm:grid-cols-4">
-          <div className="rounded-2xl border border-line bg-brand-bg p-3">
+          <div className="rounded-2xl bg-brand-bg p-3">
             <div className="text-[24px] font-bold text-brand">{FRAUD_EVAL_RUN.accuracy}</div>
             <div className="text-[11px] font-medium text-brand">
               분류 정확도 ({FRAUD_EVAL_RUN.correct}/{FRAUD_EVAL_RUN.cases})
             </div>
           </div>
-          <div className="rounded-2xl border border-line bg-alert-bg p-3">
+          <div className="rounded-2xl bg-alert-bg p-3">
             <div className="text-[24px] font-bold text-alert">{FRAUD_EVAL_RUN.missedScams}건</div>
             <div className="text-[11px] font-medium text-alert">
               미탐 — 사기를 안전하다고 함 <b>(가장 위험한 오답)</b>
