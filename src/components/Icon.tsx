@@ -21,7 +21,8 @@ export type IconName =
   | "sparkle"
   | "clip"
   | "lock"
-  | "chevronRight";
+  | "chevronRight"
+  | "check";
 
 const PATHS: Record<IconName, React.ReactNode> = {
   home: (
@@ -112,6 +113,11 @@ const PATHS: Record<IconName, React.ReactNode> = {
     <>
       <path d="M5.5 10.5h13V20h-13z" />
       <path d="M8.5 10.5V7.8a3.5 3.5 0 0 1 7 0v2.7" />
+    </>
+  ),
+  check: (
+    <>
+      <path d="m5 12.5 4.5 4.5L19 7.5" />
     </>
   ),
   chevronRight: (

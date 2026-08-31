@@ -78,6 +78,11 @@ export interface Benefit {
   } | null;
   /** 이미 받고 있으면 '신청하면 이렇게 달라져요'를 권하지 않는다 */
   alreadyHas?: (p: ProfileStore) => boolean;
+  /**
+   * 금액 필드로 수령 여부를 알 수 없어 사용자에게 직접 물어야 하는 제도.
+   * 내 정보 패널에 체크박스로 뜬다.
+   */
+  checkable?: boolean;
   /** 이 사람에게 특히 급한 제도인지 — 규칙 기반 (AI 아님) */
   urgentFor?: (p: ProfileStore) => boolean;
   /** 지역 등 프로필에 따라 금액이 갈릴 때. null이면 위의 amount를 그대로 쓴다 */
@@ -183,8 +188,10 @@ export const BENEFITS: Benefit[] = [
     category: "housing",
     regions: ["서울"],
     effect: () => ({ expenseDelta: -200_000 }),
+    checkable: true,
     caution: "국가 지원(LH·자립수당)과 별개로 서울시가 자체 시행하는 사업이에요. 예산에 따라 모집 시기가 정해지니 신청 전에 꼭 확인하세요",
     urgentFor: unstableHousing,
+    alreadyHas: (p) => p.finance.receiving?.includes("seoul-housing") ?? false,
   },
   {
     id: "gyeonggi-housing",
@@ -200,8 +207,10 @@ export const BENEFITS: Benefit[] = [
     category: "housing",
     regions: ["경기"],
     effect: () => ({ expenseDelta: -200_000 }),
+    checkable: true,
     caution: "주거 형태에 따라 소득 기준이 달라요(행복주택·통합공공임대는 기준 있음, 매입·전세임대는 무관). 공고문에서 올해 기준을 확인하세요",
     urgentFor: unstableHousing,
+    alreadyHas: (p) => p.finance.receiving?.includes("gyeonggi-housing") ?? false,
   },
   {
     id: "busan-housing",
@@ -335,6 +344,11 @@ export function sortBenefits(p: ProfileStore, list: Benefit[] = BENEFITS): Benef
     const bv = b.urgentFor?.(p) ? 0 : 1;
     return av - bv;
   });
+}
+
+/** 내 정보 패널에서 "이미 받고 있나요?"를 물어볼 제도 (거주 지역에 맞는 것만) */
+export function checkableBenefits(p: ProfileStore): Benefit[] {
+  return sortBenefits(p).filter((b) => b.checkable);
 }
 
 /** 확인한 지 오래된 정보는 화면에서 표시해 준다 */

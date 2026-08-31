@@ -16,6 +16,11 @@ export interface FinanceInfo {
   allowance?: number; // 자립수당(월, 원)
   balance?: number; // 현재 통장 잔액(원)
   alloc?: { emergency?: number; living?: number; saving?: number }; // 용도별 배분(원)
+  /**
+   * 이미 받고 있는 지원제도 id 목록 (benefits.ts의 Benefit.id).
+   * 금액 필드로 알 수 있는 제도(자립수당·정착금)는 여기 넣지 않는다 — 출처가 둘이 되면 어긋난다.
+   */
+  receiving?: string[];
 }
 
 export interface ProfileStore {
@@ -162,6 +167,7 @@ export function buildProfileContext(p: ProfileStore): string {
   if (f.settlement != null) lines.push(`자립정착금 총액: ${formatMan(f.settlement)}`);
   if (f.allowance != null) lines.push(`자립수당(월): ${formatMan(f.allowance)}`);
   if (f.balance != null) lines.push(`현재 잔액: ${formatMan(f.balance)}`);
+  if (f.receiving?.length) lines.push(`이미 받고 있는 지원: ${f.receiving.join(", ")}`);
   const a = f.alloc;
   if (a && (a.emergency || a.living || a.saving)) {
     lines.push(

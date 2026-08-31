@@ -12,6 +12,8 @@ import {
   type ProfileStore,
 } from "@/lib/profile";
 import { formatMan } from "@/lib/cards";
+import { checkableBenefits } from "@/lib/benefits";
+import { Icon } from "./Icon";
 
 type Props = {
   open: boolean;
@@ -127,6 +129,8 @@ export function ProfilePanel({ open, onClose, data, setData, onFetchFromDb }: Pr
   const s = draft.status;
   const f = draft.finance;
   const dirty = JSON.stringify(draft) !== JSON.stringify(data);
+  // 거주 지역을 고르면 그 지역 제도만 뜬다
+  const checkable = checkableBenefits(draft);
 
   const save = () => {
     setData(draft);
@@ -137,6 +141,14 @@ export function ProfilePanel({ open, onClose, data, setData, onFetchFromDb }: Pr
     setDraft((p) => ({ ...p, status: { ...p.status, ...patch } }));
   const setFinance = (patch: Partial<ProfileStore["finance"]>) =>
     setDraft((p) => ({ ...p, finance: { ...p.finance, ...patch } }));
+  /** 이미 받고 있는 제도 토글 */
+  const toggleReceiving = (id: string, on: boolean) =>
+    setDraft((p) => {
+      const cur = p.finance.receiving ?? [];
+      const next = on ? [...new Set([...cur, id])] : cur.filter((x) => x !== id);
+      return { ...p, finance: { ...p.finance, receiving: next.length ? next : undefined } };
+    });
+
   const setAlloc = (patch: Partial<NonNullable<ProfileStore["finance"]["alloc"]>>) =>
     setDraft((p) => ({ ...p, finance: { ...p.finance, alloc: { ...p.finance.alloc, ...patch } } }));
 
@@ -352,6 +364,52 @@ export function ProfilePanel({ open, onClose, data, setData, onFetchFromDb }: Pr
                 </div>
               </div>
             </div>
+
+            {/* 이미 받고 있는 것 — 금액 필드로 알 수 없는 제도만 직접 묻는다.
+                이걸 모르면 "신청하면 이렇게 달라져요"를 이미 받는 사람에게도 권하게 된다 */}
+            {checkable.length > 0 && (
+              <div className="rounded-[20px] bg-white p-5">
+                <h3 className="text-[15px] font-bold text-ink">이미 받고 있는 지원</h3>
+                <p className="mt-1 text-[12px] leading-snug text-ink3">
+                  체크하면 그 제도는 &lsquo;신청하면 달라져요&rsquo; 제안에서 빠져요
+                </p>
+                <div className="mt-3.5 flex flex-col gap-2">
+                  {checkable.map((b) => {
+                    const on = draft.finance.receiving?.includes(b.id) ?? false;
+                    return (
+                      <button
+                        key={b.id}
+                        type="button"
+                        role="checkbox"
+                        aria-checked={on}
+                        onClick={() => toggleReceiving(b.id, !on)}
+                        className={`flex items-center gap-3 rounded-2xl px-4 py-3.5 text-left transition ${
+                          on ? "bg-brand-bg" : "bg-ground hover:bg-line"
+                        }`}
+                      >
+                        <span
+                          className={`flex h-5 w-5 shrink-0 items-center justify-center rounded-md transition ${
+                            on ? "bg-brand text-white" : "bg-white"
+                          }`}
+                        >
+                          {on && <Icon name="check" className="h-3.5 w-3.5" strokeWidth={3} />}
+                        </span>
+                        <span className="min-w-0 flex-1">
+                          <span
+                            className={`block text-[13px] font-bold ${on ? "text-brand" : "text-ink"}`}
+                          >
+                            {b.name}
+                          </span>
+                          <span className="mt-0.5 block text-[12px] leading-snug text-ink3">
+                            {b.amount}
+                          </span>
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
 
             {/* 보조 동작 — 주 버튼과 섞이지 않게 약하게 둔다 */}
             <div className="flex items-center justify-center gap-1 text-[12px] font-semibold text-ink3">
