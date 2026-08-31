@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import {
   computeDday,
@@ -17,7 +18,8 @@ type Props = {
   onClose: () => void;
   data: ProfileStore;
   setData: Dispatch<SetStateAction<ProfileStore>>;
-  onLoadFromDb: () => void;
+  /** DB에서 값을 읽어 온다. 저장은 하지 않고 임시 입력값에만 채운다 */
+  onFetchFromDb: () => Promise<ProfileStore | null>;
 };
 
 // 만원 단위 입력 <-> 원 단위 저장 변환
@@ -109,16 +111,34 @@ function Summary({ label, value, alert = false }: { label: string; value: string
   );
 }
 
-export function ProfilePanel({ open, onClose, data, setData, onLoadFromDb }: Props) {
-  const s = data.status;
-  const f = data.finance;
+export function ProfilePanel({ open, onClose, data, setData, onFetchFromDb }: Props) {
+  // 입력은 임시값(draft)에만 쌓고, 저장은 '저장하기'를 눌러야 일어난다.
+  // 예전에는 글자를 칠 때마다 바로 저장돼서, 잘못 눌렀다 닫아도 되돌릴 수 없었다.
+  const [draft, setDraft] = useState<ProfileStore>(data);
+
+  // 패널을 열 때마다 저장된 값으로 되돌린다.
+  // effect 대신 렌더 중에 맞추는 React 권장 방식 — 여분의 렌더가 생기지 않는다.
+  const [wasOpen, setWasOpen] = useState(open);
+  if (open !== wasOpen) {
+    setWasOpen(open);
+    if (open) setDraft(data);
+  }
+
+  const s = draft.status;
+  const f = draft.finance;
+  const dirty = JSON.stringify(draft) !== JSON.stringify(data);
+
+  const save = () => {
+    setData(draft);
+    onClose();
+  };
 
   const setStatus = (patch: Partial<ProfileStore["status"]>) =>
-    setData((p) => ({ ...p, status: { ...p.status, ...patch } }));
+    setDraft((p) => ({ ...p, status: { ...p.status, ...patch } }));
   const setFinance = (patch: Partial<ProfileStore["finance"]>) =>
-    setData((p) => ({ ...p, finance: { ...p.finance, ...patch } }));
+    setDraft((p) => ({ ...p, finance: { ...p.finance, ...patch } }));
   const setAlloc = (patch: Partial<NonNullable<ProfileStore["finance"]["alloc"]>>) =>
-    setData((p) => ({ ...p, finance: { ...p.finance, alloc: { ...p.finance.alloc, ...patch } } }));
+    setDraft((p) => ({ ...p, finance: { ...p.finance, alloc: { ...p.finance.alloc, ...patch } } }));
 
   const dday = s.endDate ? computeDday(s.endDate) : null;
   const a = f.alloc ?? {};
@@ -335,19 +355,25 @@ export function ProfilePanel({ open, onClose, data, setData, onLoadFromDb }: Pro
 
             {/* 보조 동작 — 주 버튼과 섞이지 않게 약하게 둔다 */}
             <div className="flex items-center justify-center gap-1 text-[12px] font-semibold text-ink3">
-              <button onClick={onLoadFromDb} className="rounded-xl px-2 py-1 hover:text-ink2">
+              <button
+                onClick={async () => {
+                  const loaded = await onFetchFromDb();
+                  if (loaded) setDraft(loaded);
+                }}
+                className="rounded-xl px-2 py-1 hover:text-ink2"
+              >
                 DB에서 불러오기
               </button>
               <span aria-hidden>·</span>
               <button
-                onClick={() => setData(sampleProfile())}
+                onClick={() => setDraft(sampleProfile())}
                 className="rounded-xl px-2 py-1 hover:text-ink2"
               >
                 샘플 데이터
               </button>
               <span aria-hidden>·</span>
               <button
-                onClick={() => setData(DEFAULT_PROFILE)}
+                onClick={() => setDraft(DEFAULT_PROFILE)}
                 className="rounded-xl px-2 py-1 hover:text-ink2"
               >
                 초기화
@@ -362,12 +388,27 @@ export function ProfilePanel({ open, onClose, data, setData, onLoadFromDb }: Pro
 
         {/* 입력은 즉시 저장되지만, 끝내는 버튼이 없으면 언제 끝났는지 알 수 없다 */}
         <div className="shrink-0 bg-white px-5 pb-5 pt-4">
-          <button
-            onClick={onClose}
-            className="w-full rounded-2xl bg-ink py-4 text-[15px] font-bold text-white transition hover:opacity-90"
-          >
-            완료
-          </button>
+          {dirty && (
+            <p className="mb-2.5 text-center text-[12px] font-medium text-ink3">
+              저장하지 않고 닫으면 입력한 내용이 사라져요
+            </p>
+          )}
+          <div className="flex gap-2">
+            {dirty && (
+              <button
+                onClick={onClose}
+                className="flex-1 rounded-2xl bg-ground py-4 text-[15px] font-bold text-ink2 transition hover:bg-line"
+              >
+                취소
+              </button>
+            )}
+            <button
+              onClick={dirty ? save : onClose}
+              className="flex-[2] rounded-2xl bg-ink py-4 text-[15px] font-bold text-white transition hover:opacity-90"
+            >
+              {dirty ? "저장하기" : "닫기"}
+            </button>
+          </div>
         </div>
       </div>
     </div>
