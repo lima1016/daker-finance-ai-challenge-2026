@@ -33,12 +33,12 @@ const HOUSING_RULES: [RegExp, number, string][] = [
 
 function housingScore(housing?: string): Axis {
   if (!housing?.trim()) {
-    return { key: "housing", label: "주거", value: 30, hint: "주거 상태를 알려주시면 더 정확해져요" };
+    return { key: "housing", label: "주거 안정", value: 30, hint: "주거 상태를 알려주시면 더 정확해져요" };
   }
   for (const [re, value, hint] of HOUSING_RULES) {
-    if (re.test(housing)) return { key: "housing", label: "주거", value, hint };
+    if (re.test(housing)) return { key: "housing", label: "주거 안정", value, hint };
   }
-  return { key: "housing", label: "주거", value: 50, hint: "주거는 보통 수준으로 봤어요" };
+  return { key: "housing", label: "주거 안정", value: 50, hint: "주거는 보통 수준으로 봤어요" };
 }
 
 function incomeScore(p: ProfileStore): Axis {
@@ -64,7 +64,7 @@ function incomeScore(p: ProfileStore): Axis {
 
   // 최저 생계 수준(월 100만원)을 기준으로 소득 크기 보정
   if (income > 0) base += Math.min(20, (income / 1_000_000) * 10);
-  return { key: "income", label: "소득", value: clamp(base), hint };
+  return { key: "income", label: "소득 관리", value: clamp(base), hint };
 }
 
 function emergencyScore(p: ProfileStore): Axis {
@@ -86,10 +86,10 @@ function spendingScore(p: ProfileStore): Axis {
   const income = (p.status.income ?? 0) + (p.finance.allowance ?? 0);
   const expense = p.status.expense ?? 0;
   if (income === 0 && expense === 0) {
-    return { key: "spending", label: "지출관리", value: 30, hint: "수입·지출을 입력하면 진단해 드릴게요" };
+    return { key: "spending", label: "지출 관리", value: 30, hint: "수입·지출을 입력하면 진단해 드릴게요" };
   }
   if (income === 0) {
-    return { key: "spending", label: "지출관리", value: 15, hint: "들어오는 돈 없이 나가기만 하고 있어요" };
+    return { key: "spending", label: "지출 관리", value: 15, hint: "들어오는 돈 없이 나가기만 하고 있어요" };
   }
   const ratio = expense / income; // 지출/수입
   // 0.6 이하 = 100점, 1.0 = 40점, 1.4 이상 = 0점
@@ -100,7 +100,7 @@ function spendingScore(p: ProfileStore): Axis {
       : ratio <= 1
         ? "수지가 빠듯해요. 고정비를 한 번 점검해 봐요"
         : "매달 적자예요. 지출을 먼저 손봐야 해요";
-  return { key: "spending", label: "지출관리", value, hint };
+  return { key: "spending", label: "지출 관리", value, hint };
 }
 
 function benefitsScore(p: ProfileStore): Axis {
@@ -122,7 +122,7 @@ function benefitsScore(p: ProfileStore): Axis {
   const hint = notes.length
     ? `${notes.join("·")} 항목을 아직 못 챙겼어요`
     : "받을 수 있는 제도를 잘 챙기고 있어요";
-  return { key: "benefits", label: "제도활용", value: clamp(value), hint };
+  return { key: "benefits", label: "제도 활용", value: clamp(value), hint };
 }
 
 const WEIGHTS: Record<AxisKey, number> = {
