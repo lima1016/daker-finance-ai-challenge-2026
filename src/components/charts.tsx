@@ -14,7 +14,9 @@ export const STATUS = {
   danger: { color: "#f04452", label: "위험" },
 } as const;
 
-const INK = { primary: "#1f2937", secondary: "#4b5563", muted: "#9ca3af", grid: "#e5e7eb" };
+// SVG는 클래스가 아니라 색 값을 직접 받는다. globals.css의 토큰과 같은 값을 쓴다
+// (--color-ink / ink2 / ink3 / line). 토큰을 바꾸면 여기도 함께 고칠 것.
+const INK = { primary: "#191f28", secondary: "#4e5968", muted: "#8b95a1", grid: "#e5e8eb" };
 
 // ── 잔액 예측 곡선 ────────────────────────────────────────────
 
