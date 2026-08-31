@@ -7,7 +7,6 @@
 // 나머지는 중립으로 내린다 — 셋 다 빨갛면 무엇을 먼저 볼지 알 수 없다.
 import type { BriefingAction, BriefingItem } from "@/lib/briefing";
 import { Icon, type IconName } from "../Icon";
-import { SectionTitle } from "./Section";
 
 /** 라벨·아이콘은 '무엇을 하는 항목인가'(action)에서 뽑는다. 같은 말이 두 번 나오지 않게. */
 const BY_ACTION: Record<BriefingAction, { eyebrow: string; icon: IconName; cta: string }> = {
@@ -19,11 +18,10 @@ const BY_ACTION: Record<BriefingAction, { eyebrow: string; icon: IconName; cta: 
 
 type Props = {
   items: BriefingItem[];
-  loading?: boolean;
   onNavigate: (action: BriefingAction, prompt?: string) => void;
 };
 
-export function TodayCards({ items, loading = false, onNavigate }: Props) {
+export function TodayCards({ items, onNavigate }: Props) {
   const three = items.slice(0, 3);
   if (three.length === 0) return null;
 
@@ -32,16 +30,6 @@ export function TodayCards({ items, loading = false, onNavigate }: Props) {
 
   return (
     <section>
-      <SectionTitle
-        right={
-          loading ? (
-            <span className="inline-block h-3.5 w-3.5 animate-spin rounded-full border-2 border-line border-t-ink3" />
-          ) : undefined
-        }
-      >
-        오늘 챙길 {three.length}가지
-      </SectionTitle>
-
       <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
         {three.map((item, i) => {
           const meta = BY_ACTION[item.action] ?? BY_ACTION.chat;

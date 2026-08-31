@@ -10,7 +10,6 @@
 import { BENEFITS, CATEGORY_LABEL, isStale, sortBenefits, type Benefit } from "@/lib/benefits";
 import type { ProfileStore } from "@/lib/profile";
 import { Icon } from "./Icon";
-import { SectionTitle } from "./home/Section";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -133,11 +132,12 @@ export function Benefits({
         <p className="mt-2.5 text-[14px] leading-relaxed text-ink3">
           {urgentCount > 0 ? (
             <>
-              지금 상황에서 특히 급한 <b className="font-bold text-alert">{urgentCount}가지</b>를 위로
-              올렸어요. 금액과 조건은 전부 공식 자료 그대로예요.
+              {list.length}가지 중 지금 특히 급한{" "}
+              <b className="font-bold text-alert">{urgentCount}가지</b>를 위로 올렸어요. 금액과 조건은
+              전부 공식 자료 그대로예요.
             </>
           ) : (
-            "금액과 조건은 전부 공식 자료 그대로예요. 새봄이 지어낸 숫자가 아니에요."
+            `${list.length}가지를 찾았어요. 금액과 조건은 전부 공식 자료 그대로예요.`
           )}
         </p>
       </header>
@@ -162,7 +162,6 @@ export function Benefits({
       )}
 
       <section>
-        <SectionTitle>제도 {list.length}가지</SectionTitle>
         <div className="grid gap-3 lg:grid-cols-2">
           {list.map((b) => (
             <BenefitCard

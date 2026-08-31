@@ -139,8 +139,11 @@ export function Dashboard({
               <>{name ? `${name}님, 안녕하세요` : "안녕하세요"}</>
             )}
           </h1>
-          <p className="mt-2.5 text-[14px] leading-relaxed text-ink3">
+          <p className="mt-2.5 flex items-center gap-2 text-[14px] leading-relaxed text-ink3">
             {greeting || "지금 상황을 바탕으로 꼭 챙겨야 할 것만 먼저 알려드려요."}
+            {loading && (
+              <span className="inline-block h-3.5 w-3.5 shrink-0 animate-spin rounded-full border-2 border-line border-t-ink3" />
+            )}
           </p>
         </div>
 
@@ -192,7 +195,7 @@ export function Dashboard({
       ) : (
         <div className="flex flex-col gap-7">
           {/* 가장 먼저 봐야 할 것 — 전체 폭 */}
-          <TodayCards items={items} loading={loading} onNavigate={onNavigate} />
+          <TodayCards items={items} onNavigate={onNavigate} />
 
           {/* 왼쪽(내 상태 + 도구)과 오른쪽(준비도)의 높이가 맞도록 묶는다 */}
           <div className="grid gap-7 xl:grid-cols-[minmax(0,1fr)_320px]">
