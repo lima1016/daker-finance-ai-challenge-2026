@@ -7,6 +7,7 @@ import {
   DEFAULT_PROFILE,
   HOUSING_OPTIONS,
   WORK_OPTIONS,
+  REGION_OPTIONS,
   type ProfileStore,
 } from "@/lib/profile";
 import { formatMan } from "@/lib/cards";
@@ -28,17 +29,38 @@ const wonFromMan = (v: string): number | undefined => {
 };
 const manFromWon = (v?: number): string => (v == null ? "" : String(v / 10000));
 
-function Field({ label, children }: { label: string; children: React.ReactNode }) {
+/**
+ * 입력 한 칸.
+ *
+ * 테두리 대신 회색 배경으로 입력 영역을 표시한다. 폼이 길 때 테두리를 두르면
+ * 선이 10개 넘게 쌓여 어디를 채워야 할지 보이지 않는다.
+ */
+function Field({
+  label,
+  suffix,
+  children,
+}: {
+  label: string;
+  suffix?: string;
+  children: React.ReactNode;
+}) {
   return (
-    <label className="flex flex-col gap-1">
-      <span className="text-xs font-medium text-gray-600">{label}</span>
-      {children}
+    <label className="flex min-w-0 flex-col gap-1.5">
+      <span className="px-1 text-[12px] font-semibold text-ink3">{label}</span>
+      <span className="relative flex items-center">
+        {children}
+        {suffix && (
+          <span className="pointer-events-none absolute right-4 text-[13px] font-semibold text-ink3">
+            {suffix}
+          </span>
+        )}
+      </span>
     </label>
   );
 }
 
 const inputCls =
-  "rounded-lg border border-gray-200 px-3 py-2 text-sm outline-none focus:border-emerald-400";
+  "w-full min-w-0 rounded-2xl bg-ground px-4 py-3.5 text-[15px] font-semibold text-ink outline-none transition placeholder:font-medium placeholder:text-ink3 focus:bg-line/70";
 
 /**
  * 정해진 선택지 중에서 고르는 입력.
@@ -57,7 +79,7 @@ function Choice({
   const unknown = value && !options.includes(value) ? value : null;
   return (
     <select
-      className={`${inputCls} bg-white`}
+      className={`${inputCls} appearance-none pr-10`}
       value={value ?? ""}
       onChange={(e) => onChange(e.target.value || undefined)}
     >
@@ -69,6 +91,21 @@ function Choice({
         </option>
       ))}
     </select>
+  );
+}
+
+function Summary({ label, value, alert = false }: { label: string; value: string; alert?: boolean }) {
+  return (
+    <div>
+      <div className="text-[12px] font-medium text-ink3">{label}</div>
+      <div
+        className={`mt-1 whitespace-nowrap text-[19px] font-extrabold tracking-[-0.03em] tabular-nums ${
+          alert ? "text-alert" : "text-ink"
+        }`}
+      >
+        {value}
+      </div>
+    </div>
   );
 }
 
@@ -93,162 +130,244 @@ export function ProfilePanel({ open, onClose, data, setData, onLoadFromDb }: Pro
       {/* 배경 */}
       <div
         onClick={onClose}
-        className={`absolute inset-0 bg-black/30 transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
+        className={`absolute inset-0 bg-ink/40 transition-opacity ${open ? "opacity-100" : "opacity-0"}`}
       />
       {/* 패널 */}
       <div
-        className={`absolute right-0 top-0 flex h-full w-full max-w-sm flex-col bg-gray-50 shadow-xl transition-transform ${
+        className={`absolute right-0 top-0 flex h-full w-full max-w-[420px] flex-col bg-ground transition-transform ${
           open ? "translate-x-0" : "translate-x-full"
         }`}
       >
-        <div className="flex items-center justify-between border-b border-gray-200 bg-white px-4 py-3">
-          <h2 className="text-base font-bold text-gray-800">내 정보</h2>
-          <button onClick={onClose} className="rounded-lg p-1 text-gray-400 hover:bg-gray-100" aria-label="닫기">
-            ✕
+        <div className="flex shrink-0 items-center justify-between bg-white px-5 py-4">
+          <h2 className="text-[19px] font-extrabold tracking-tight text-ink">내 정보</h2>
+          <button
+            onClick={onClose}
+            aria-label="닫기"
+            className="flex h-9 w-9 items-center justify-center rounded-full bg-ground text-ink2 transition hover:bg-line"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={2.2} strokeLinecap="round" className="h-4 w-4" aria-hidden>
+              <path d="M6 6l12 12M18 6L6 18" />
+            </svg>
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto p-4">
-          {/* 요약 */}
-          <div className="mb-4 grid grid-cols-2 gap-2">
-            <div className="rounded-xl border border-emerald-100 bg-white p-3">
-              <div className="text-[11px] text-gray-500">보호종료</div>
-              <div className="text-lg font-bold text-emerald-700">{dday?.label || "—"}</div>
+        <div className="min-h-0 flex-1 overflow-y-auto px-5 py-5">
+          <div className="flex flex-col gap-5">
+            {/* 요약 */}
+            <div className="grid grid-cols-2 gap-y-4 rounded-[20px] bg-white p-5">
+              <Summary label="보호종료" value={dday?.label || "—"} />
+              <Summary label="현재 잔액" value={f.balance != null ? formatMan(f.balance) : "—"} />
+              <Summary label="정착금" value={f.settlement != null ? formatMan(f.settlement) : "—"} />
+              <Summary
+                label={net != null && net < 0 ? "매달 모자란 돈" : "매달 남는 돈"}
+                alert={net != null && net < 0}
+                value={net == null ? "—" : formatMan(Math.abs(net))}
+              />
             </div>
-            <div className="rounded-xl border border-emerald-100 bg-white p-3">
-              <div className="text-[11px] text-gray-500">현재 잔액</div>
-              <div className="text-lg font-bold text-emerald-700">
-                {f.balance != null ? formatMan(f.balance) : "—"}
-              </div>
-            </div>
-            <div className="rounded-xl border border-gray-100 bg-white p-3">
-              <div className="text-[11px] text-gray-500">정착금</div>
-              <div className="text-sm font-semibold text-gray-800">
-                {f.settlement != null ? formatMan(f.settlement) : "—"}
-              </div>
-            </div>
-            <div className="rounded-xl border border-gray-100 bg-white p-3">
-              <div className="text-[11px] text-gray-500">월 수지</div>
-              <div className={`text-sm font-semibold ${net == null ? "text-gray-800" : net >= 0 ? "text-emerald-700" : "text-rose-600"}`}>
-                {net == null ? "—" : `${net >= 0 ? "+" : "-"}${formatMan(Math.abs(net))}`}
-              </div>
-            </div>
-          </div>
 
-          {/* 배분 막대 */}
-          {allocTotal > 0 && (
-            <div className="mb-4 rounded-xl border border-gray-100 bg-white p-3">
-              <div className="mb-2 text-xs font-semibold text-gray-500">용도별 배분</div>
-              {[
-                { k: "비상금", v: a.emergency || 0, c: "bg-emerald-500" },
-                { k: "생활비", v: a.living || 0, c: "bg-sky-500" },
-                { k: "저축", v: a.saving || 0, c: "bg-amber-500" },
-              ].map((row) => {
-                const pct = allocTotal > 0 ? Math.round((row.v / allocTotal) * 100) : 0;
-                return (
-                  <div key={row.k} className="mb-1.5">
-                    <div className="flex justify-between text-[11px] text-gray-600">
-                      <span>{row.k}</span>
-                      <span>{formatMan(row.v)} · {pct}%</span>
-                    </div>
-                    <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
-                      <div className={`h-full ${row.c}`} style={{ width: `${pct}%` }} />
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-
-          {/* 내 상태 */}
-          <div className="mb-4">
-            <h3 className="mb-2 text-sm font-bold text-gray-700">내 상태</h3>
-            <div className="flex flex-col gap-3">
-              <Field label="닉네임">
-                <input className={inputCls} value={s.nickname ?? ""} onChange={(e) => setStatus({ nickname: e.target.value })} placeholder="예) 새봄이" />
-              </Field>
-              <Field label="보호종료(예정)일">
-                <input type="date" className={inputCls} value={s.endDate ?? ""} onChange={(e) => setStatus({ endDate: e.target.value })} />
-              </Field>
-              <Field label="주거 상태">
-                <Choice
-                  value={s.housing}
-                  options={HOUSING_OPTIONS}
-                  onChange={(housing) => setStatus({ housing })}
-                />
-              </Field>
-              <Field label="근로 상태">
-                <Choice value={s.work} options={WORK_OPTIONS} onChange={(work) => setStatus({ work })} />
-              </Field>
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="월 수입 (만원)">
-                  <input type="number" inputMode="numeric" className={inputCls} value={manFromWon(s.income)} onChange={(e) => setStatus({ income: wonFromMan(e.target.value) })} placeholder="120" />
-                </Field>
-                <Field label="월 지출 (만원)">
-                  <input type="number" inputMode="numeric" className={inputCls} value={manFromWon(s.expense)} onChange={(e) => setStatus({ expense: wonFromMan(e.target.value) })} placeholder="90" />
-                </Field>
+            {/* 배분 막대 — 색은 브랜드 + 무채색 명도차로만 구분한다 */}
+            {allocTotal > 0 && (
+              <div className="rounded-[20px] bg-white p-5">
+                <div className="mb-3.5 text-[15px] font-bold text-ink">용도별 배분</div>
+                <div className="flex flex-col gap-3">
+                  {[
+                    { k: "비상금", v: a.emergency || 0, c: "bg-brand" },
+                    { k: "생활비", v: a.living || 0, c: "bg-ink2" },
+                    { k: "저축", v: a.saving || 0, c: "bg-ink3" },
+                  ].map((row) => {
+                    const pct = Math.round((row.v / allocTotal) * 100);
+                    return (
+                      <div key={row.k}>
+                        <div className="mb-1.5 flex justify-between text-[12px]">
+                          <span className="font-semibold text-ink2">{row.k}</span>
+                          <span className="font-semibold tabular-nums text-ink3">
+                            {formatMan(row.v)} · {pct}%
+                          </span>
+                        </div>
+                        <div className="h-2 w-full overflow-hidden rounded-full bg-ground">
+                          <div className={`h-full rounded-full ${row.c}`} style={{ width: `${pct}%` }} />
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
-            </div>
-          </div>
+            )}
 
-          {/* 내 재정 */}
-          <div className="mb-2">
-            <h3 className="mb-2 text-sm font-bold text-gray-700">내 재정</h3>
-            <div className="flex flex-col gap-3">
-              <div className="grid grid-cols-2 gap-3">
-                <Field label="정착금 총액 (만원)">
-                  <input type="number" inputMode="numeric" className={inputCls} value={manFromWon(f.settlement)} onChange={(e) => setFinance({ settlement: wonFromMan(e.target.value) })} placeholder="1500" />
+            {/* 내 상태 */}
+            <div className="rounded-[20px] bg-white p-5">
+              <h3 className="mb-4 text-[15px] font-bold text-ink">기본 정보</h3>
+              <div className="flex flex-col gap-3.5">
+                <Field label="닉네임">
+                  <input
+                    className={inputCls}
+                    value={s.nickname ?? ""}
+                    onChange={(e) => setStatus({ nickname: e.target.value })}
+                    placeholder="예) 새봄이"
+                  />
                 </Field>
-                <Field label="자립수당·월 (만원)">
-                  <input type="number" inputMode="numeric" className={inputCls} value={manFromWon(f.allowance)} onChange={(e) => setFinance({ allowance: wonFromMan(e.target.value) })} placeholder="50" />
+                <Field label="보호종료(예정)일">
+                  <input
+                    type="date"
+                    className={inputCls}
+                    value={s.endDate ?? ""}
+                    onChange={(e) => setStatus({ endDate: e.target.value })}
+                  />
                 </Field>
-              </div>
-              <Field label="현재 통장 잔액 (만원)">
-                <input type="number" inputMode="numeric" className={inputCls} value={manFromWon(f.balance)} onChange={(e) => setFinance({ balance: wonFromMan(e.target.value) })} placeholder="1300" />
-              </Field>
-              <div className="rounded-xl border border-gray-100 bg-white p-3">
-                <div className="mb-2 text-xs font-medium text-gray-600">용도별 배분 (만원)</div>
-                <div className="grid grid-cols-3 gap-2">
-                  <Field label="비상금">
-                    <input type="number" inputMode="numeric" className={inputCls} value={manFromWon(a.emergency)} onChange={(e) => setAlloc({ emergency: wonFromMan(e.target.value) })} placeholder="450" />
+                <Field label="거주 지역">
+                  <Choice
+                    value={s.region}
+                    options={REGION_OPTIONS}
+                    onChange={(region) => setStatus({ region })}
+                  />
+                </Field>
+                <Field label="주거 상태">
+                  <Choice
+                    value={s.housing}
+                    options={HOUSING_OPTIONS}
+                    onChange={(housing) => setStatus({ housing })}
+                  />
+                </Field>
+                <Field label="근로 상태">
+                  <Choice value={s.work} options={WORK_OPTIONS} onChange={(work) => setStatus({ work })} />
+                </Field>
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="월 수입" suffix="만원">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      className={`${inputCls} pr-14`}
+                      value={manFromWon(s.income)}
+                      onChange={(e) => setStatus({ income: wonFromMan(e.target.value) })}
+                      placeholder="120"
+                    />
                   </Field>
-                  <Field label="생활비">
-                    <input type="number" inputMode="numeric" className={inputCls} value={manFromWon(a.living)} onChange={(e) => setAlloc({ living: wonFromMan(e.target.value) })} placeholder="600" />
-                  </Field>
-                  <Field label="저축">
-                    <input type="number" inputMode="numeric" className={inputCls} value={manFromWon(a.saving)} onChange={(e) => setAlloc({ saving: wonFromMan(e.target.value) })} placeholder="450" />
+                  <Field label="월 지출" suffix="만원">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      className={`${inputCls} pr-14`}
+                      value={manFromWon(s.expense)}
+                      onChange={(e) => setStatus({ expense: wonFromMan(e.target.value) })}
+                      placeholder="90"
+                    />
                   </Field>
                 </div>
               </div>
             </div>
-          </div>
 
-          <div className="mt-4 flex flex-col gap-2">
-            <button
-              onClick={onLoadFromDb}
-              className="rounded-lg border border-emerald-300 bg-emerald-50 py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-100"
-            >
-              DB에서 사용자 불러오기
-            </button>
-            <div className="flex gap-2">
+            {/* 내 재정 */}
+            <div className="rounded-[20px] bg-white p-5">
+              <h3 className="mb-4 text-[15px] font-bold text-ink">내 돈</h3>
+              <div className="flex flex-col gap-3.5">
+                <div className="grid grid-cols-2 gap-3">
+                  <Field label="정착금 총액" suffix="만원">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      className={`${inputCls} pr-14`}
+                      value={manFromWon(f.settlement)}
+                      onChange={(e) => setFinance({ settlement: wonFromMan(e.target.value) })}
+                      placeholder="1500"
+                    />
+                  </Field>
+                  <Field label="자립수당 (월)" suffix="만원">
+                    <input
+                      type="number"
+                      inputMode="numeric"
+                      className={`${inputCls} pr-14`}
+                      value={manFromWon(f.allowance)}
+                      onChange={(e) => setFinance({ allowance: wonFromMan(e.target.value) })}
+                      placeholder="50"
+                    />
+                  </Field>
+                </div>
+                <Field label="현재 통장 잔액" suffix="만원">
+                  <input
+                    type="number"
+                    inputMode="numeric"
+                    className={`${inputCls} pr-14`}
+                    value={manFromWon(f.balance)}
+                    onChange={(e) => setFinance({ balance: wonFromMan(e.target.value) })}
+                    placeholder="1300"
+                  />
+                </Field>
+
+                <div className="mt-1">
+                  <div className="mb-2.5 px-1 text-[12px] font-semibold text-ink3">
+                    용도별 배분 (만원)
+                  </div>
+                  <div className="grid grid-cols-3 gap-2">
+                    <Field label="비상금">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        className={inputCls}
+                        value={manFromWon(a.emergency)}
+                        onChange={(e) => setAlloc({ emergency: wonFromMan(e.target.value) })}
+                        placeholder="450"
+                      />
+                    </Field>
+                    <Field label="생활비">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        className={inputCls}
+                        value={manFromWon(a.living)}
+                        onChange={(e) => setAlloc({ living: wonFromMan(e.target.value) })}
+                        placeholder="600"
+                      />
+                    </Field>
+                    <Field label="저축">
+                      <input
+                        type="number"
+                        inputMode="numeric"
+                        className={inputCls}
+                        value={manFromWon(a.saving)}
+                        onChange={(e) => setAlloc({ saving: wonFromMan(e.target.value) })}
+                        placeholder="450"
+                      />
+                    </Field>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 보조 동작 — 주 버튼과 섞이지 않게 약하게 둔다 */}
+            <div className="flex items-center justify-center gap-1 text-[12px] font-semibold text-ink3">
+              <button onClick={onLoadFromDb} className="rounded-xl px-2 py-1 hover:text-ink2">
+                DB에서 불러오기
+              </button>
+              <span aria-hidden>·</span>
               <button
                 onClick={() => setData(sampleProfile())}
-                className="flex-1 rounded-lg border border-emerald-200 bg-white py-2 text-xs font-medium text-emerald-700 hover:bg-emerald-50"
+                className="rounded-xl px-2 py-1 hover:text-ink2"
               >
                 샘플 데이터
               </button>
+              <span aria-hidden>·</span>
               <button
                 onClick={() => setData(DEFAULT_PROFILE)}
-                className="flex-1 rounded-lg border border-gray-200 bg-white py-2 text-xs text-gray-500 hover:bg-gray-50"
+                className="rounded-xl px-2 py-1 hover:text-ink2"
               >
                 초기화
               </button>
             </div>
-          </div>
 
-          <p className="mt-3 text-center text-[10px] text-gray-400">
-            입력한 정보는 이 기기에만 저장되며(익명), 새봄이 답변에 참고합니다.
-          </p>
+            <p className="text-center text-[12px] leading-relaxed text-ink3">
+              입력한 정보는 이 기기에만 저장되며(익명), 새봄이 답변에 참고합니다.
+            </p>
+          </div>
+        </div>
+
+        {/* 입력은 즉시 저장되지만, 끝내는 버튼이 없으면 언제 끝났는지 알 수 없다 */}
+        <div className="shrink-0 bg-white px-5 pb-5 pt-4">
+          <button
+            onClick={onClose}
+            className="w-full rounded-2xl bg-ink py-4 text-[15px] font-bold text-white transition hover:opacity-90"
+          >
+            완료
+          </button>
         </div>
       </div>
     </div>

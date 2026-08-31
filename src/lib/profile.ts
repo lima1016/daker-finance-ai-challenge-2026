@@ -4,6 +4,7 @@ import { formatMan } from "./cards";
 export interface StatusInfo {
   nickname?: string;
   endDate?: string; // 보호종료(예정)일 YYYY-MM-DD
+  region?: string; // 거주 시·도 (자립정착금이 지자체별로 다르다)
   housing?: string; // 주거 상태
   work?: string; // 근로 상태
   income?: number; // 월 수입(원)
@@ -28,6 +29,28 @@ export const DEFAULT_PROFILE: ProfileStore = { status: {}, finance: {} };
 // 문자열로 판별한다. 자유 입력이면 "회사 다님" 같은 값이 어디에도 걸리지 않아
 // 점수가 엉뚱하게 나오므로, 선택지를 고정해 채점이 항상 맞도록 한다.
 // ⚠️ 항목을 바꾸면 readiness.ts의 판별 규칙도 함께 확인할 것.
+// 자립정착금·주거지원이 시·도 단위로 갈리므로 광역 단위만 받는다.
+// ⚠️ 항목을 바꾸면 benefits.ts의 SETTLEMENT_BY_REGION도 함께 확인할 것.
+export const REGION_OPTIONS = [
+  "서울",
+  "부산",
+  "대구",
+  "인천",
+  "광주",
+  "대전",
+  "울산",
+  "세종",
+  "경기",
+  "강원",
+  "충북",
+  "충남",
+  "전북",
+  "전남",
+  "경북",
+  "경남",
+  "제주",
+] as const;
+
 export const HOUSING_OPTIONS = [
   "LH·공공임대",
   "전세",
@@ -62,6 +85,7 @@ export function sampleProfile(): ProfileStore {
     status: {
       nickname: "김새봄",
       endDate,
+      region: "서울",
       housing: "원룸·월세",
       work: "아르바이트·단기",
       income: 400_000,
@@ -87,6 +111,19 @@ export function computeDday(endDate: string): { label: string; days: number } {
   return { label: `종료 ${-days}일차`, days };
 }
 
+/**
+ * 대시보드를 '내 화면'으로 그릴 만큼 정보가 모였는지.
+ *
+ * hasProfile()은 필드 하나만 채워져도 true라, 예시를 보다가 거주 지역만 골라도
+ * 예시가 통째로 사라지고 "—"만 남은 화면이 됐다. 잔액·지출처럼 계산에 실제로
+ * 쓰이는 값이 하나라도 있어야 내 화면으로 넘어간다.
+ */
+export function hasEnoughForDashboard(p: ProfileStore): boolean {
+  const { income, expense } = p.status;
+  const { balance, settlement, allowance } = p.finance;
+  return [income, expense, balance, settlement, allowance].some((v) => v != null);
+}
+
 export function hasProfile(p: ProfileStore): boolean {
   return Object.values(p.status).some((v) => v !== undefined && v !== "") ||
     Object.values(p.finance).some((v) => v !== undefined && v !== "");
@@ -102,6 +139,7 @@ export function buildProfileContext(p: ProfileStore): string {
     const d = computeDday(s.endDate);
     lines.push(`보호종료(예정)일: ${s.endDate}${d.label ? ` (${d.label})` : ""}`);
   }
+  if (s.region) lines.push(`거주 지역: ${s.region}`);
   if (s.housing) lines.push(`주거 상태: ${s.housing}`);
   if (s.work) lines.push(`근로 상태: ${s.work}`);
   if (s.income != null) lines.push(`월 수입: ${formatMan(s.income)}`);
