@@ -17,15 +17,13 @@ import { TrustBadge } from "./TrustBadge";
 const Shell = ({
   label,
   right,
-  tone = "border-line",
   children,
 }: {
   label?: string;
   right?: React.ReactNode;
-  tone?: string;
   children: React.ReactNode;
 }) => (
-  <div className={`my-2 rounded-xl border ${tone} bg-white p-3 shadow-sm`}>
+  <div className="my-2 rounded-2xl bg-white p-4">
     {(label || right) && (
       <div className="mb-2 flex items-baseline justify-between gap-2">
         <span className="text-[12px] font-semibold text-ink3">{label}</span>
@@ -41,7 +39,6 @@ function BudgetCard({ card }: { card: BudgetCardT }) {
   return (
     <Shell
       label="목돈 배분"
-      tone="border-line"
       right={
         <span className="flex items-center gap-1.5">
           <TrustBadge kind="calc" text="규칙 계산" />
@@ -83,7 +80,7 @@ function BudgetCard({ card }: { card: BudgetCardT }) {
 
 function TimelineCard({ card }: { card: TimelineCardT }) {
   return (
-    <Shell label={card.title || "할 일 순서"} tone="border-line">
+    <Shell label={card.title || "할 일 순서"}>
       <ol className="relative flex flex-col gap-3 border-l border-line pl-4">
         {card.steps.map((s, idx) => (
           <li key={idx} className="relative">
@@ -103,15 +100,15 @@ function TimelineCard({ card }: { card: TimelineCardT }) {
 }
 
 const RISK_STYLE = {
-  danger: { dot: "bg-alert", ring: "border-line", head: "text-alert", chip: "bg-alert-bg" },
-  warning: { dot: "bg-warn", ring: "border-warn/30", head: "text-warn", chip: "bg-warn-bg" },
-  safe: { dot: "bg-brand", ring: "border-line", head: "text-brand", chip: "bg-brand-bg" },
+  danger: { dot: "bg-alert", head: "text-alert", chip: "bg-alert-bg" },
+  warning: { dot: "bg-warn", head: "text-warn", chip: "bg-warn-bg" },
+  safe: { dot: "bg-brand", head: "text-brand", chip: "bg-brand-bg" },
 } as const;
 
 function RiskCard({ card }: { card: RiskCardT }) {
   const st = RISK_STYLE[card.level] ?? RISK_STYLE.warning;
   return (
-    <div className={`my-2 rounded-xl border ${st.ring} bg-white p-3 shadow-sm`}>
+    <div className="my-2 rounded-2xl bg-white p-4">
       <div className={`flex items-center gap-2 text-[13px] font-bold ${st.head}`}>
         <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${st.dot}`} aria-hidden />
         <span>{card.title}</span>
@@ -149,7 +146,7 @@ export function ForecastCard({ card }: { card: ForecastCardT }) {
   const when = depletionLabel(base?.depletionMonth ?? null);
 
   return (
-    <Shell label={card.title || "앞으로의 잔액"} tone="border-line">
+    <Shell label={card.title || "앞으로의 잔액"}>
       <div className="mb-2 text-[13px]">
         {when ? (
           <span className="text-ink">
@@ -211,7 +208,6 @@ export function RadarCardView({ card }: { card: RadarCardT }) {
   return (
     <Shell
       label={card.title || "자립 준비도"}
-      tone="border-line"
       right={
         <span className="flex items-center gap-1.5">
           <TrustBadge kind="calc" text="규칙 채점" />
@@ -285,7 +281,7 @@ function Highlighted({ text, spans }: { text: string; spans: ScanCardT["spans"] 
 export function ScanCardView({ card }: { card: ScanCardT }) {
   const st = RISK_STYLE[card.level] ?? RISK_STYLE.warning;
   return (
-    <div className={`flex flex-col gap-3 rounded-2xl border ${st.ring} bg-white p-4 shadow-sm`}>
+    <div className="flex flex-col gap-3 rounded-2xl bg-white p-4">
       <div>
         <div className="mb-1">
           <TrustBadge kind="ai" text="AI 판독" />

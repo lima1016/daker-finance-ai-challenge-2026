@@ -125,7 +125,7 @@ export function RiskScanner() {
           onPaste={onPaste}
           rows={5}
           placeholder="검사할 문자·링크·계약 내용을 붙여넣으세요. 스크린샷은 Ctrl+V로 바로 붙여도 돼요…"
-          className="w-full resize-none rounded-[20px] bg-white p-3.5 text-[13px] outline-none focus:border-line"
+          className="w-full resize-none rounded-2xl bg-ground p-4 text-[13px] outline-none focus:border-line"
         />
 
         {image && (
@@ -180,7 +180,7 @@ export function RiskScanner() {
       </div>
 
       {loading && (
-        <div className="flex flex-col gap-2 rounded-[20px] bg-white p-4">
+        <div className="flex flex-col gap-2 rounded-[20px] bg-white p-5">
           <div className="h-4 w-1/3 animate-pulse rounded bg-ground" />
           <div className="h-16 animate-pulse rounded bg-ground" />
           <p className="text-[12px] text-ink3">

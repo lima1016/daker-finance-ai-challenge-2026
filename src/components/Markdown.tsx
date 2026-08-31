@@ -48,7 +48,7 @@ function inline(text: string, key: string): ReactNode[] {
           href={m[5]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-brand underline underline-offset-2 hover:text-brand"
+          className="text-brand underline underline-offset-2 hover:opacity-70"
         >
           {m[4]}
         </a>,

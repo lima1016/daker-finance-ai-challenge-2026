@@ -77,7 +77,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
       </div>
 
       {/* 슬라이더 */}
-      <div className="flex flex-col gap-4 rounded-[20px] bg-white p-4 shadow-sm">
+      <div className="flex flex-col gap-4 rounded-[20px] bg-white p-5">
         <SliderRow label="비상금" dot="bg-brand" value={emergency} total={total} onChange={onEmergency} />
         <SliderRow label="생활비" dot="bg-brand" value={living} total={total} onChange={onLiving} />
         <div className="flex items-center justify-between text-[13px]">
@@ -102,7 +102,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
 
       <button
         onClick={save}
-        className="rounded-2xl bg-brand py-3 text-[13px] font-medium text-white transition hover:bg-brand"
+        className="rounded-2xl bg-brand py-3 text-[13px] font-medium text-white transition hover:opacity-90"
       >
         이 배분으로 저장하고 새봄에게 물어보기
       </button>

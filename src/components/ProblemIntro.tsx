@@ -38,7 +38,7 @@ export function ProblemIntro({ onStart, onSample }: { onStart: () => void; onSam
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={onStart}
-            className="rounded-2xl bg-brand px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-brand"
+            className="rounded-2xl bg-brand px-4 py-2.5 text-[13px] font-semibold text-white transition hover:opacity-90"
           >
             내 정보로 시작하기
           </button>
@@ -57,7 +57,7 @@ export function ProblemIntro({ onStart, onSample }: { onStart: () => void; onSam
       {/* 보조 수치 */}
       <div className="grid gap-2 sm:grid-cols-3">
         {CONTEXT_STATS.map((s) => (
-          <div key={s.label} className="rounded-[20px] bg-white p-3">
+          <div key={s.label} className="rounded-[20px] bg-white p-5">
             <div className="text-[13px] font-bold text-ink">{s.value}</div>
             <div className="mt-0.5 text-[11px] font-medium text-ink2">{s.label}</div>
             {s.detail && <div className="mt-0.5 text-[10px] leading-snug text-ink3">{s.detail}</div>}

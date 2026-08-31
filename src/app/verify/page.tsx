@@ -64,7 +64,7 @@ export default function VerifyPage() {
 
         <div className="mt-3 grid gap-2 sm:grid-cols-3">
           {byTool.map((t) => (
-            <div key={t.tool} className="rounded-2xl bg-white p-3">
+            <div key={t.tool} className="rounded-2xl bg-white p-4">
               <div className="font-mono text-[11px] text-ink3">{t.tool}</div>
               <div className="mt-0.5 text-[13px] font-bold text-ink">
                 {t.passed}/{t.total} 차단
@@ -166,7 +166,7 @@ export default function VerifyPage() {
             <div className="text-[24px] font-bold text-warn">{FRAUD_EVAL_RUN.falseAlarms}건</div>
             <div className="text-[11px] font-medium text-warn">오탐 — 정상을 사기라고 함</div>
           </div>
-          <div className="rounded-[20px] bg-white p-3">
+          <div className="rounded-[20px] bg-white p-5">
             <div className="text-[24px] font-bold text-ink">{FRAUD_EVAL_RUN.spanMatch}</div>
             <div className="text-[11px] font-medium text-ink2">하이라이트가 원문과 일치</div>
           </div>
@@ -217,7 +217,7 @@ export default function VerifyPage() {
       </section>
 
       {/* 어떻게 막는가 */}
-      <section className="mt-8 rounded-[20px] bg-white p-4">
+      <section className="mt-8 rounded-[20px] bg-white p-5">
         <h2 className="text-[13px] font-bold text-ink">어떻게 막나요</h2>
         <ol className="mt-2 flex list-decimal flex-col gap-1.5 pl-4 text-[12px] leading-relaxed text-ink2">
           <li>

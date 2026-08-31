@@ -133,7 +133,7 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
                 : "지금 현금흐름을 보니 어떤가요? 더 나아지려면 뭘 하면 좋을까요?",
             )
           }
-          className="rounded-2xl bg-brand px-4 py-2.5 text-[13px] font-medium text-white transition hover:bg-brand"
+          className="rounded-2xl bg-brand px-4 py-2.5 text-[13px] font-medium text-white transition hover:opacity-90"
         >
           새봄에게 물어보기
         </button>
@@ -156,7 +156,7 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "good" | "bad" }) {
   const color = tone === "bad" ? "text-alert" : tone === "good" ? "text-brand" : "text-ink";
   return (
-    <div className="rounded-[20px] bg-white p-3">
+    <div className="rounded-[20px] bg-white p-5">
       <div className="text-[11px] text-ink3">{label}</div>
       <div className={`text-[13px] font-bold ${color}`}>{value}</div>
     </div>
