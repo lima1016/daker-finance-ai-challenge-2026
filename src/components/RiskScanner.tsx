@@ -42,7 +42,7 @@ export function RiskScanner() {
   async function pick(file: File | null | undefined) {
     if (!file) return;
     if (!ALLOWED.includes(file.type)) {
-      setError("PNG·JPG·WEBP 이미지만 올릴 수 있어요.");
+      setError("이미지 파일만 올릴 수 있어요. PNG·JPG·WEBP로 올려주세요.");
       return;
     }
     if (file.size > MAX_BYTES) {
@@ -81,7 +81,7 @@ export function RiskScanner() {
       });
       const json = await res.json();
       if (!res.ok || json.error) {
-        setError(json.error || "검사 중 문제가 생겼어요.");
+        setError(json.error || "확인하지 못했어요. 잠시 후 다시 시도해 주세요.");
         return;
       }
       setCard(json.card as ScanCard);
@@ -124,7 +124,7 @@ export function RiskScanner() {
           onChange={(e) => setText(e.target.value)}
           onPaste={onPaste}
           rows={5}
-          placeholder="검사할 문자·링크·계약 내용을 붙여넣으세요. 스크린샷은 Ctrl+V로 바로 붙여도 돼요…"
+          placeholder="받은 문자나 링크를 그대로 붙여넣어 보세요. 스크린샷은 Ctrl+V로 바로 붙여도 돼요"
           className="w-full resize-none rounded-2xl bg-white p-4 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink3 focus:ring-2 focus:ring-ink/10"
         />
 
@@ -132,7 +132,7 @@ export function RiskScanner() {
           <div className="relative w-fit">
             <Image
               src={image.preview}
-              alt="검사할 스크린샷 미리보기"
+              alt="올린 스크린샷 미리보기"
               width={160}
               height={160}
               unoptimized
@@ -175,7 +175,7 @@ export function RiskScanner() {
           disabled={!canScan}
           className="ml-auto rounded-2xl bg-alert px-5 py-2.5 text-[13px] font-medium text-white transition hover:opacity-90 disabled:opacity-40"
         >
-          {loading ? "검사 중…" : "검사하기"}
+          {loading ? "살펴보는 중…" : "안전한지 확인하기"}
         </button>
       </div>
 

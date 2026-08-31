@@ -91,7 +91,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
 
       {/* 새봄의 진단 */}
       <div className="rounded-2xl bg-brand-bg p-4">
-        <div className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-brand">✨ 새봄의 진단</div>
+        <div className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-brand">새봄의 진단</div>
         <p className="text-[13px] leading-relaxed text-brand">
           소득이 없어도 약 <b>{months}개월</b> 버틸 수 있어요. {diagnose({ emergency, living, saving }, exp).replace(
             /^.*?버틸 수 있어요\.\s*/,

@@ -63,7 +63,7 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator, onOpe
         settle({
           forecast: null,
           insight: "",
-          notice: "시나리오를 불러오지 못했어요. 그래프는 그대로 보실 수 있어요.",
+          notice: "바꿔볼 만한 방법을 불러오지 못했어요. 그래프는 그대로 보실 수 있어요.",
         }),
       );
 
@@ -93,17 +93,17 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator, onOpe
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <div className="flex items-baseline justify-between">
         <h1 className="text-[24px] font-extrabold tracking-[-0.03em] text-ink">현금흐름 예측</h1>
-        <span className="text-[12px] text-ink3">앞으로 {result.months}개월</span>
+        <span className="text-[12px] text-ink3">앞으로 {result.months}개월치</span>
       </div>
 
       <div className="grid grid-cols-3 gap-2.5">
         <Stat label="현재 잔액" value={formatMan(result.startBalance)} />
         <Stat
-          label="월 수지"
+          label="매달 남는 돈"
           value={`${result.baseNet >= 0 ? "+" : "−"}${formatMan(Math.abs(result.baseNet))}`}
           tone={result.baseNet >= 0 ? "good" : "bad"}
         />
-        <Stat label="바닥나는 때" value={when ?? "24개월 내 없음"} tone={when ? "bad" : "good"} />
+        <Stat label="잔액이 바닥나는 때" value={when ?? "2년 안엔 없어요"} tone={when ? "bad" : "good"} />
       </div>
 
       <ForecastCard
@@ -121,7 +121,7 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator, onOpe
       {loading && (
         <p className="flex items-center gap-2 text-[12px] text-ink3">
           <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-line border-t-transparent" />
-          새봄이 이 상황에서 시도해볼 만한 시나리오를 찾고 있어요…
+          새봄이 무엇을 바꿔볼지 찾고 있어요…
         </p>
       )}
       {notice && (
