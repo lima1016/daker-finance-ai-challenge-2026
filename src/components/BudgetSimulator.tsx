@@ -49,7 +49,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
 
   const rows = [
     { key: "비상금", value: emergency, color: "bg-brand" },
-    { key: "생활비", value: living, color: "bg-brand" },
+    { key: "생활비", value: living, color: "bg-ink2" },
     { key: "저축", value: saving, color: "bg-ink3" },
   ];
 
@@ -79,7 +79,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
       {/* 슬라이더 */}
       <div className="flex flex-col gap-4 rounded-[20px] bg-white p-5">
         <SliderRow label="비상금" dot="bg-brand" value={emergency} total={total} onChange={onEmergency} />
-        <SliderRow label="생활비" dot="bg-brand" value={living} total={total} onChange={onLiving} />
+        <SliderRow label="생활비" dot="bg-ink2" value={living} total={total} onChange={onLiving} />
         <div className="flex items-center justify-between text-[13px]">
           <span className="flex items-center gap-2">
             <span className="h-2 w-2 rounded-full bg-ink3" />
