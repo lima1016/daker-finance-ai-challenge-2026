@@ -41,8 +41,17 @@ export function BalanceChart({
 }) {
   const gradId = useId();
   const [hover, setHover] = useState<number | null>(null);
+  // 범례를 눌러 끈 곡선. 첫 곡선(지금 이대로)은 기준선이라 끄지 않는다
+  const [off, setOff] = useState<Set<number>>(new Set());
 
-  const shown = series.slice(0, SERIES_COLORS.length);
+  const all = useMemo(() => series.slice(0, SERIES_COLORS.length), [series]);
+  const shown = useMemo(
+    () =>
+      all
+        .map((sr, i) => ({ ...sr, colorIndex: i }))
+        .filter((_, i) => i === 0 || !off.has(i)),
+    [all, off],
+  );
   const len = Math.max(...shown.map((s) => s.points.length));
 
   const { min, max, x, y } = useMemo(() => {
@@ -66,9 +75,9 @@ export function BalanceChart({
 
   // 선 끝 직접 라벨 — 겹치면 위아래로 밀어낸다 (색만으로 구분하지 않기 위해)
   const endLabels = useMemo(() => {
-    const raw = shown.map((s, i) => ({
+    const raw = shown.map((s) => ({
       label: s.label,
-      color: SERIES_COLORS[i],
+      color: SERIES_COLORS[s.colorIndex],
       value: s.points[s.points.length - 1],
       y: y(s.points[s.points.length - 1]),
     }));
@@ -140,16 +149,16 @@ export function BalanceChart({
           />
         )}
 
-        {shown.map((s, i) => (
+        {shown.map((s) => (
           <path
             key={s.label}
             d={path(s.points)}
             fill="none"
-            stroke={SERIES_COLORS[i]}
+            stroke={SERIES_COLORS[s.colorIndex]}
             strokeWidth="2"
             strokeLinecap="round"
             strokeLinejoin="round"
-            strokeDasharray={i === 0 ? undefined : "5 3"}
+            strokeDasharray={s.colorIndex === 0 ? undefined : "5 3"}
           />
         ))}
 
@@ -204,14 +213,14 @@ export function BalanceChart({
               stroke={INK.muted}
               strokeWidth="1"
             />
-            {shown.map((s, i) =>
+            {shown.map((s) =>
               s.points[hover] == null ? null : (
                 <circle
                   key={s.label}
                   cx={x(hover)}
                   cy={y(s.points[hover])}
                   r="4.5"
-                  fill={SERIES_COLORS[i]}
+                  fill={SERIES_COLORS[s.colorIndex]}
                   stroke="#fff"
                   strokeWidth="2"
                 />
@@ -229,11 +238,11 @@ export function BalanceChart({
           }}
         >
           <div className="mb-0.5 font-semibold text-ink2">{labels[hover]}</div>
-          {shown.map((s, i) => (
+          {shown.map((s) => (
             <div key={s.label} className="flex items-center gap-1.5 whitespace-nowrap">
               <span
                 className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
-                style={{ backgroundColor: SERIES_COLORS[i] }}
+                style={{ backgroundColor: SERIES_COLORS[s.colorIndex] }}
               />
               <span className="text-ink3">{s.label}</span>
               <span className="ml-auto font-medium text-ink">{formatMan(s.points[hover] ?? 0)}</span>
@@ -242,17 +251,38 @@ export function BalanceChart({
         </div>
       )}
 
-      {shown.length > 1 && (
-        <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
-          {shown.map((s, i) => (
-            <span key={s.label} className="flex items-center gap-1.5 text-[11px] text-ink2">
-              <span
-                className="inline-block h-2 w-2 rounded-full"
-                style={{ backgroundColor: SERIES_COLORS[i] }}
-              />
-              {s.label}
-            </span>
-          ))}
+      {all.length > 1 && (
+        <div className="mt-1 flex flex-wrap gap-x-2 gap-y-1">
+          {all.map((s, i) => {
+            const hidden = off.has(i);
+            const base = i === 0; // 기준 곡선은 항상 켜 둔다
+            return (
+              <button
+                key={s.label}
+                type="button"
+                disabled={base}
+                aria-pressed={!hidden}
+                title={base ? "기준 곡선이라 끌 수 없어요" : hidden ? "눌러서 다시 보기" : "눌러서 숨기기"}
+                onClick={() =>
+                  setOff((prev) => {
+                    const next = new Set(prev);
+                    if (next.has(i)) next.delete(i);
+                    else next.add(i);
+                    return next;
+                  })
+                }
+                className={`flex items-center gap-1.5 rounded-full px-2 py-1 text-[11px] transition ${
+                  base ? "cursor-default text-ink2" : hidden ? "text-ink3 hover:bg-ground" : "text-ink2 hover:bg-ground"
+                }`}
+              >
+                <span
+                  className="inline-block h-2 w-2 rounded-full transition"
+                  style={{ backgroundColor: hidden ? "#c8cdd3" : SERIES_COLORS[i] }}
+                />
+                <span className={hidden ? "line-through" : ""}>{s.label}</span>
+              </button>
+            );
+          })}
         </div>
       )}
     </div>
