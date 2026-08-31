@@ -7,7 +7,7 @@
 // "받을 수 있는 제도를 모름"이라, 목록을 훑는 경험이 따로 있어야 한다.
 //
 // 금액·조건은 전부 benefits.ts에 적힌 확인된 값이다. AI가 만들지 않는다.
-import { BENEFITS, CATEGORY_LABEL, isStale, sortBenefits, type Benefit } from "@/lib/benefits";
+import { CATEGORY_LABEL, isStale, sortBenefits, type Benefit } from "@/lib/benefits";
 import { normalizeRegion, type ProfileStore } from "@/lib/profile";
 import { Icon } from "./Icon";
 
@@ -120,7 +120,8 @@ export function Benefits({
   onOpenProfile: () => void;
 }) {
   const list = sortBenefits(profile);
-  const urgentCount = BENEFITS.filter((b) => b.urgentFor?.(profile)).length;
+  // 화면에 보이는 것만 센다 — 지역이 달라 감춰진 사업까지 세면 숫자가 카드 수와 어긋난다
+  const urgentCount = list.filter((b) => b.urgentFor?.(profile)).length;
   const noRegion = !normalizeRegion(profile.status.region);
 
   return (
