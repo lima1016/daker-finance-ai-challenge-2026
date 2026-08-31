@@ -9,9 +9,9 @@ export const SERIES_COLORS = ["#047857", "#0284c7", "#c2410c", "#7c3aed"] as con
 
 // 상태색은 예약 — 시리즈 색으로 재사용하지 않는다.
 export const STATUS = {
-  safe: { color: "#059669", label: "안전", icon: "🟢" },
-  warning: { color: "#d97706", label: "주의", icon: "🟡" },
-  danger: { color: "#e11d48", label: "위험", icon: "🔴" },
+  safe: { color: "#059669", label: "안전" },
+  warning: { color: "#c77700", label: "주의" },
+  danger: { color: "#f04452", label: "위험" },
 } as const;
 
 const INK = { primary: "#1f2937", secondary: "#4b5563", muted: "#9ca3af", grid: "#e5e7eb" };
@@ -363,7 +363,11 @@ export function RiskGauge({
       </svg>
       <div className="min-w-0">
         <div className="flex items-center gap-1.5 text-[13px] font-bold" style={{ color: st.color }}>
-          <span aria-hidden>{st.icon}</span>
+          <span
+            aria-hidden
+            className="inline-block h-2.5 w-2.5 rounded-full"
+            style={{ background: st.color }}
+          />
           <span>{st.label}</span>
         </div>
         <div className="text-[11px] text-ink3">위험도 {Math.round(score)} / 100</div>

@@ -97,7 +97,7 @@ export function RiskScanner() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <div>
-        <h2 className="flex items-center gap-2 text-[17px] font-bold text-alert">🛡️ 위험 스캐너</h2>
+        <h1 className="text-[24px] font-extrabold tracking-[-0.03em] text-ink">위험 스캐너</h1>
         <p className="mt-1 text-[13px] text-ink3">
           받은 문자·카톡·링크·계약서를 붙여넣거나, <b>스크린샷을 그대로 올려도</b> 돼요. 어떤 문장이 왜
           위험한지 짚어드릴게요. 내용은 저장하지 않아요.
@@ -162,7 +162,7 @@ export function RiskScanner() {
           onClick={() => fileRef.current?.click()}
           className="rounded-full bg-white px-3 py-1.5 text-[12px] text-ink2 hover:bg-ground"
         >
-          📷 스크린샷 올리기
+          스크린샷 올리기
         </button>
         <button
           onClick={() => setText(SAMPLE)}

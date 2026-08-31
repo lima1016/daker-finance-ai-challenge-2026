@@ -26,7 +26,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
   if (total <= 0) {
     return (
       <div className="mx-auto max-w-2xl">
-        <h2 className="text-[17px] font-bold text-brand">💰 배분 시뮬레이터</h2>
+        <h1 className="text-[24px] font-extrabold tracking-[-0.03em] text-ink">목돈 배분 시뮬레이터</h1>
         <div className="mt-4 rounded-2xl border border-line bg-brand-bg p-4 text-[13px] text-brand">
           먼저 정착금(또는 현재 잔액) 금액이 필요해요.
           <button onClick={onOpenProfile} className="ml-1 font-medium underline">
@@ -65,7 +65,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-[17px] font-bold text-brand">💰 배분 시뮬레이터</h2>
+        <h1 className="text-[24px] font-extrabold tracking-[-0.03em] text-ink">목돈 배분 시뮬레이터</h1>
         <span className="text-[13px] font-medium text-brand">총 {formatMan(total)}</span>
       </div>
 

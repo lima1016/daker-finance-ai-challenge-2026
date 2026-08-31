@@ -103,9 +103,9 @@ function TimelineCard({ card }: { card: TimelineCardT }) {
 }
 
 const RISK_STYLE = {
-  danger: { emoji: "🔴", ring: "border-line", head: "text-alert", chip: "bg-alert-bg" },
-  warning: { emoji: "🟡", ring: "border-warn/30", head: "text-warn", chip: "bg-warn-bg" },
-  safe: { emoji: "🟢", ring: "border-line", head: "text-brand", chip: "bg-brand-bg" },
+  danger: { dot: "bg-alert", ring: "border-line", head: "text-alert", chip: "bg-alert-bg" },
+  warning: { dot: "bg-warn", ring: "border-warn/30", head: "text-warn", chip: "bg-warn-bg" },
+  safe: { dot: "bg-brand", ring: "border-line", head: "text-brand", chip: "bg-brand-bg" },
 } as const;
 
 function RiskCard({ card }: { card: RiskCardT }) {
@@ -113,9 +113,7 @@ function RiskCard({ card }: { card: RiskCardT }) {
   return (
     <div className={`my-2 rounded-xl border ${st.ring} bg-white p-3 shadow-sm`}>
       <div className={`flex items-center gap-2 text-[13px] font-bold ${st.head}`}>
-        <span className="text-[17px]" aria-hidden>
-          {st.emoji}
-        </span>
+        <span className={`inline-block h-2.5 w-2.5 shrink-0 rounded-full ${st.dot}`} aria-hidden />
         <span>{card.title}</span>
       </div>
       {!!card.reasons?.length && (
@@ -309,7 +307,7 @@ export function ScanCardView({ card }: { card: ScanCardT }) {
         <ul className="flex flex-col gap-1.5">
           {card.spans.map((s, i) => (
             <li key={i} className="flex gap-2 text-[12px] leading-snug">
-              <span aria-hidden>{s.level === "danger" ? "🔴" : "🟡"}</span>
+              <span aria-hidden className={`mt-1.5 inline-block h-2 w-2 shrink-0 rounded-full ${s.level === "danger" ? "bg-alert" : "bg-warn"}`} />
               <span className="min-w-0 text-ink2">
                 <b className="text-ink">“{s.text}”</b> — {s.why}
               </span>
