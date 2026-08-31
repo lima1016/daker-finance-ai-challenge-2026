@@ -97,8 +97,8 @@ export function RiskScanner() {
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <div>
-        <h2 className="flex items-center gap-2 text-lg font-bold text-rose-700">🛡️ 위험 스캐너</h2>
-        <p className="mt-1 text-sm text-gray-500">
+        <h2 className="flex items-center gap-2 text-[17px] font-bold text-alert">🛡️ 위험 스캐너</h2>
+        <p className="mt-1 text-[13px] text-ink3">
           받은 문자·카톡·링크·계약서를 붙여넣거나, <b>스크린샷을 그대로 올려도</b> 돼요. 어떤 문장이 왜
           위험한지 짚어드릴게요. 내용은 저장하지 않아요.
         </p>
@@ -116,7 +116,7 @@ export function RiskScanner() {
           void pick(e.dataTransfer.files[0]);
         }}
         className={`flex flex-col gap-2 rounded-2xl border-2 border-dashed p-2 transition ${
-          dragging ? "border-rose-400 bg-rose-50/50" : "border-transparent"
+          dragging ? "border-alert bg-alert-bg/50" : "border-transparent"
         }`}
       >
         <textarea
@@ -125,7 +125,7 @@ export function RiskScanner() {
           onPaste={onPaste}
           rows={5}
           placeholder="검사할 문자·링크·계약 내용을 붙여넣으세요. 스크린샷은 Ctrl+V로 바로 붙여도 돼요…"
-          className="w-full resize-none rounded-2xl border border-gray-200 bg-white p-3.5 text-sm outline-none focus:border-rose-300"
+          className="w-full resize-none rounded-[20px] bg-white p-3.5 text-[13px] outline-none focus:border-line"
         />
 
         {image && (
@@ -136,12 +136,12 @@ export function RiskScanner() {
               width={160}
               height={160}
               unoptimized
-              className="h-auto max-h-44 w-auto rounded-xl border border-gray-200 object-contain"
+              className="h-auto max-h-44 w-auto rounded-xl border border-line object-contain"
             />
             <button
               onClick={() => setImage(null)}
               aria-label="이미지 제거"
-              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-gray-800 text-xs text-white shadow"
+              className="absolute -right-2 -top-2 flex h-6 w-6 items-center justify-center rounded-full bg-ink text-[12px] text-white shadow"
             >
               ✕
             </button>
@@ -160,37 +160,37 @@ export function RiskScanner() {
       <div className="flex flex-wrap items-center gap-2">
         <button
           onClick={() => fileRef.current?.click()}
-          className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-600 hover:bg-gray-50"
+          className="rounded-full bg-white px-3 py-1.5 text-[12px] text-ink2 hover:bg-ground"
         >
           📷 스크린샷 올리기
         </button>
         <button
           onClick={() => setText(SAMPLE)}
-          className="rounded-full border border-gray-200 bg-white px-3 py-1.5 text-xs text-gray-500 hover:bg-gray-50"
+          className="rounded-full bg-white px-3 py-1.5 text-[12px] text-ink3 hover:bg-ground"
         >
           예시 붙여넣기
         </button>
         <button
           onClick={scan}
           disabled={!canScan}
-          className="ml-auto rounded-2xl bg-rose-600 px-5 py-2.5 text-sm font-medium text-white transition hover:bg-rose-700 disabled:opacity-40"
+          className="ml-auto rounded-2xl bg-alert px-5 py-2.5 text-[13px] font-medium text-white transition hover:opacity-90 disabled:opacity-40"
         >
           {loading ? "검사 중…" : "검사하기"}
         </button>
       </div>
 
       {loading && (
-        <div className="flex flex-col gap-2 rounded-2xl border border-gray-100 bg-white p-4">
-          <div className="h-4 w-1/3 animate-pulse rounded bg-gray-100" />
-          <div className="h-16 animate-pulse rounded bg-gray-100" />
-          <p className="text-xs text-gray-400">
+        <div className="flex flex-col gap-2 rounded-[20px] bg-white p-4">
+          <div className="h-4 w-1/3 animate-pulse rounded bg-ground" />
+          <div className="h-16 animate-pulse rounded bg-ground" />
+          <p className="text-[12px] text-ink3">
             {image ? "스크린샷의 글자를 읽고 있어요…" : "문장을 하나씩 살펴보는 중이에요…"}
           </p>
         </div>
       )}
 
       {error && (
-        <p className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-sm text-amber-800">{error}</p>
+        <p className="rounded-2xl border border-warn/30 bg-warn-bg p-3 text-[13px] text-warn">{error}</p>
       )}
 
       {card && <ScanCardView card={card} />}

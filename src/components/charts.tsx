@@ -221,20 +221,20 @@ export function BalanceChart({
 
       {hover != null && (
         <div
-          className="pointer-events-none absolute top-1 rounded-lg border border-gray-200 bg-white/95 px-2.5 py-1.5 text-[11px] shadow-md"
+          className="pointer-events-none absolute top-1 rounded-xl border border-line bg-white/95 px-2.5 py-1.5 text-[11px] shadow-md"
           style={{
             left: `${Math.min(72, (x(hover) / W) * 100)}%`,
           }}
         >
-          <div className="mb-0.5 font-semibold text-gray-700">{labels[hover]}</div>
+          <div className="mb-0.5 font-semibold text-ink2">{labels[hover]}</div>
           {shown.map((s, i) => (
             <div key={s.label} className="flex items-center gap-1.5 whitespace-nowrap">
               <span
                 className="inline-block h-1.5 w-1.5 shrink-0 rounded-full"
                 style={{ backgroundColor: SERIES_COLORS[i] }}
               />
-              <span className="text-gray-500">{s.label}</span>
-              <span className="ml-auto font-medium text-gray-800">{formatMan(s.points[hover] ?? 0)}</span>
+              <span className="text-ink3">{s.label}</span>
+              <span className="ml-auto font-medium text-ink">{formatMan(s.points[hover] ?? 0)}</span>
             </div>
           ))}
         </div>
@@ -243,7 +243,7 @@ export function BalanceChart({
       {shown.length > 1 && (
         <div className="mt-1 flex flex-wrap gap-x-3 gap-y-1">
           {shown.map((s, i) => (
-            <span key={s.label} className="flex items-center gap-1.5 text-[11px] text-gray-600">
+            <span key={s.label} className="flex items-center gap-1.5 text-[11px] text-ink2">
               <span
                 className="inline-block h-2 w-2 rounded-full"
                 style={{ backgroundColor: SERIES_COLORS[i] }}
@@ -362,11 +362,11 @@ export function RiskGauge({
         </text>
       </svg>
       <div className="min-w-0">
-        <div className="flex items-center gap-1.5 text-sm font-bold" style={{ color: st.color }}>
+        <div className="flex items-center gap-1.5 text-[13px] font-bold" style={{ color: st.color }}>
           <span aria-hidden>{st.icon}</span>
           <span>{st.label}</span>
         </div>
-        <div className="text-[11px] text-gray-500">위험도 {Math.round(score)} / 100</div>
+        <div className="text-[11px] text-ink3">위험도 {Math.round(score)} / 100</div>
       </div>
     </div>
   );

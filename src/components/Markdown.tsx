@@ -25,7 +25,7 @@ function inline(text: string, key: string): ReactNode[] {
 
     if (m[1] !== undefined) {
       out.push(
-        <strong key={k} className="font-semibold text-gray-900">
+        <strong key={k} className="font-semibold text-ink">
           {m[1]}
         </strong>,
       );
@@ -37,7 +37,7 @@ function inline(text: string, key: string): ReactNode[] {
       );
     } else if (m[3] !== undefined) {
       out.push(
-        <code key={k} className="rounded bg-gray-100 px-1 py-0.5 font-mono text-[12px] text-gray-700">
+        <code key={k} className="rounded bg-ground px-1 py-0.5 font-mono text-[12px] text-ink2">
           {m[3]}
         </code>,
       );
@@ -48,7 +48,7 @@ function inline(text: string, key: string): ReactNode[] {
           href={m[5]}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-emerald-700 underline underline-offset-2 hover:text-emerald-800"
+          className="text-brand underline underline-offset-2 hover:text-brand"
         >
           {m[4]}
         </a>,
@@ -131,7 +131,7 @@ export function Markdown({ text, className = "" }: { text: string; className?: s
       {chunks.map((c, i) => {
         if (c.kind === "h") {
           return (
-            <p key={i} className="pt-1 font-bold text-gray-900">
+            <p key={i} className="pt-1 font-bold text-ink">
               {inline(c.text, `h${i}`)}
             </p>
           );
@@ -149,8 +149,8 @@ export function Markdown({ text, className = "" }: { text: string; className?: s
             key={i}
             className={`flex flex-col gap-1.5 pl-5 ${
               c.kind === "ul"
-                ? "list-disc marker:text-emerald-400"
-                : "list-decimal marker:font-medium marker:text-emerald-600"
+                ? "list-disc marker:text-brand"
+                : "list-decimal marker:font-medium marker:text-brand"
             }`}
           >
             {c.items.map((it, j) => (

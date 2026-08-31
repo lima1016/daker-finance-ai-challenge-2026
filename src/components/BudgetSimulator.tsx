@@ -26,8 +26,8 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
   if (total <= 0) {
     return (
       <div className="mx-auto max-w-2xl">
-        <h2 className="text-lg font-bold text-emerald-700">💰 배분 시뮬레이터</h2>
-        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+        <h2 className="text-[17px] font-bold text-brand">💰 배분 시뮬레이터</h2>
+        <div className="mt-4 rounded-2xl border border-line bg-brand-bg p-4 text-[13px] text-brand">
           먼저 정착금(또는 현재 잔액) 금액이 필요해요.
           <button onClick={onOpenProfile} className="ml-1 font-medium underline">
             내 정보에서 입력하기
@@ -48,9 +48,9 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
   const pct = (n: number) => (total > 0 ? Math.round((n / total) * 100) : 0);
 
   const rows = [
-    { key: "비상금", value: emergency, color: "bg-emerald-700" },
-    { key: "생활비", value: living, color: "bg-emerald-500" },
-    { key: "저축", value: saving, color: "bg-emerald-300" },
+    { key: "비상금", value: emergency, color: "bg-brand" },
+    { key: "생활비", value: living, color: "bg-brand" },
+    { key: "저축", value: saving, color: "bg-ink3" },
   ];
 
   function save() {
@@ -65,34 +65,34 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-bold text-emerald-700">💰 배분 시뮬레이터</h2>
-        <span className="text-sm font-medium text-emerald-700">총 {formatMan(total)}</span>
+        <h2 className="text-[17px] font-bold text-brand">💰 배분 시뮬레이터</h2>
+        <span className="text-[13px] font-medium text-brand">총 {formatMan(total)}</span>
       </div>
 
       {/* 세그먼트 바 */}
-      <div className="flex h-3 overflow-hidden rounded-full bg-gray-100">
+      <div className="flex h-3 overflow-hidden rounded-full bg-ground">
         {rows.map((r) => (
           <div key={r.key} className={r.color} style={{ width: `${pct(r.value)}%` }} />
         ))}
       </div>
 
       {/* 슬라이더 */}
-      <div className="flex flex-col gap-4 rounded-2xl border border-gray-100 bg-white p-4 shadow-sm">
-        <SliderRow label="비상금" dot="bg-emerald-700" value={emergency} total={total} onChange={onEmergency} />
-        <SliderRow label="생활비" dot="bg-emerald-500" value={living} total={total} onChange={onLiving} />
-        <div className="flex items-center justify-between text-sm">
+      <div className="flex flex-col gap-4 rounded-[20px] bg-white p-4 shadow-sm">
+        <SliderRow label="비상금" dot="bg-brand" value={emergency} total={total} onChange={onEmergency} />
+        <SliderRow label="생활비" dot="bg-brand" value={living} total={total} onChange={onLiving} />
+        <div className="flex items-center justify-between text-[13px]">
           <span className="flex items-center gap-2">
-            <span className="h-2 w-2 rounded-full bg-emerald-300" />
-            저축 <span className="text-[11px] text-gray-400">(자동)</span>
+            <span className="h-2 w-2 rounded-full bg-ink3" />
+            저축 <span className="text-[11px] text-ink3">(자동)</span>
           </span>
-          <span className="font-semibold text-gray-800">{formatMan(saving)}</span>
+          <span className="font-semibold text-ink">{formatMan(saving)}</span>
         </div>
       </div>
 
       {/* 새봄의 진단 */}
-      <div className="rounded-2xl bg-emerald-50 p-4">
-        <div className="mb-1 flex items-center gap-1.5 text-sm font-semibold text-emerald-700">✨ 새봄의 진단</div>
-        <p className="text-[13px] leading-relaxed text-emerald-900">
+      <div className="rounded-2xl bg-brand-bg p-4">
+        <div className="mb-1 flex items-center gap-1.5 text-[13px] font-semibold text-brand">✨ 새봄의 진단</div>
+        <p className="text-[13px] leading-relaxed text-brand">
           소득이 없어도 약 <b>{months}개월</b> 버틸 수 있어요. {diagnose({ emergency, living, saving }, exp).replace(
             /^.*?버틸 수 있어요\.\s*/,
             "",
@@ -102,7 +102,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
 
       <button
         onClick={save}
-        className="rounded-2xl bg-emerald-600 py-3 text-sm font-medium text-white transition hover:bg-emerald-700"
+        className="rounded-2xl bg-brand py-3 text-[13px] font-medium text-white transition hover:bg-brand"
       >
         이 배분으로 저장하고 새봄에게 물어보기
       </button>
@@ -125,12 +125,12 @@ function SliderRow({
 }) {
   return (
     <div>
-      <div className="mb-1.5 flex items-center justify-between text-sm">
+      <div className="mb-1.5 flex items-center justify-between text-[13px]">
         <span className="flex items-center gap-2">
           <span className={`h-2 w-2 rounded-full ${dot}`} />
           {label}
         </span>
-        <span className="font-semibold text-gray-800">{formatMan(value)}</span>
+        <span className="font-semibold text-ink">{formatMan(value)}</span>
       </div>
       <input
         type="range"
@@ -139,7 +139,7 @@ function SliderRow({
         step={STEP}
         value={value}
         onChange={(e) => onChange(Number(e.target.value))}
-        className="w-full accent-emerald-600"
+        className="w-full accent-brand"
       />
     </div>
   );

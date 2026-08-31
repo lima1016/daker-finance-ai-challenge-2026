@@ -17,7 +17,7 @@ import { TrustBadge } from "./TrustBadge";
 const Shell = ({
   label,
   right,
-  tone = "border-gray-100",
+  tone = "border-line",
   children,
 }: {
   label?: string;
@@ -28,7 +28,7 @@ const Shell = ({
   <div className={`my-2 rounded-xl border ${tone} bg-white p-3 shadow-sm`}>
     {(label || right) && (
       <div className="mb-2 flex items-baseline justify-between gap-2">
-        <span className="text-xs font-semibold text-gray-500">{label}</span>
+        <span className="text-[12px] font-semibold text-ink3">{label}</span>
         {right}
       </div>
     )}
@@ -41,11 +41,11 @@ function BudgetCard({ card }: { card: BudgetCardT }) {
   return (
     <Shell
       label="목돈 배분"
-      tone="border-emerald-100"
+      tone="border-line"
       right={
         <span className="flex items-center gap-1.5">
           <TrustBadge kind="calc" text="규칙 계산" />
-          <span className="text-sm font-bold text-emerald-700">총 {formatMan(total)}</span>
+          <span className="text-[13px] font-bold text-brand">총 {formatMan(total)}</span>
         </span>
       }
     >
@@ -54,25 +54,25 @@ function BudgetCard({ card }: { card: BudgetCardT }) {
           const pct = total > 0 ? Math.round((it.amount / total) * 100) : 0;
           return (
             <div key={idx}>
-              <div className="mb-0.5 flex items-baseline justify-between text-xs">
-                <span className="flex items-center gap-1.5 font-medium text-gray-800">
+              <div className="mb-0.5 flex items-baseline justify-between text-[12px]">
+                <span className="flex items-center gap-1.5 font-medium text-ink">
                   <span
                     className="inline-block h-2 w-2 rounded-full"
                     style={{ backgroundColor: SERIES_COLORS[idx % SERIES_COLORS.length] }}
                   />
                   {it.label}
                 </span>
-                <span className="text-gray-500">
+                <span className="text-ink3">
                   {formatMan(it.amount)} · {pct}%
                 </span>
               </div>
-              <div className="h-2 w-full overflow-hidden rounded-full bg-gray-100">
+              <div className="h-2 w-full overflow-hidden rounded-full bg-ground">
                 <div
                   className="h-full rounded-full"
                   style={{ width: `${pct}%`, backgroundColor: SERIES_COLORS[idx % SERIES_COLORS.length] }}
                 />
               </div>
-              {it.desc && <p className="mt-0.5 text-[11px] text-gray-400">{it.desc}</p>}
+              {it.desc && <p className="mt-0.5 text-[11px] text-ink3">{it.desc}</p>}
             </div>
           );
         })}
@@ -83,18 +83,18 @@ function BudgetCard({ card }: { card: BudgetCardT }) {
 
 function TimelineCard({ card }: { card: TimelineCardT }) {
   return (
-    <Shell label={card.title || "할 일 순서"} tone="border-sky-100">
-      <ol className="relative flex flex-col gap-3 border-l border-sky-200 pl-4">
+    <Shell label={card.title || "할 일 순서"} tone="border-line">
+      <ol className="relative flex flex-col gap-3 border-l border-line pl-4">
         {card.steps.map((s, idx) => (
           <li key={idx} className="relative">
             <span
               className={`absolute -left-[21px] top-0.5 h-3 w-3 rounded-full border-2 ${
-                s.done ? "border-emerald-500 bg-emerald-500" : "border-sky-400 bg-white"
+                s.done ? "border-brand bg-brand" : "border-line bg-white"
               }`}
             />
-            <div className="text-[11px] font-semibold text-sky-700">{s.when}</div>
-            <div className="text-sm font-medium text-gray-800">{s.title}</div>
-            {s.desc && <div className="text-xs text-gray-500">{s.desc}</div>}
+            <div className="text-[11px] font-semibold text-ink2">{s.when}</div>
+            <div className="text-[13px] font-medium text-ink">{s.title}</div>
+            {s.desc && <div className="text-[12px] text-ink3">{s.desc}</div>}
           </li>
         ))}
       </ol>
@@ -103,27 +103,27 @@ function TimelineCard({ card }: { card: TimelineCardT }) {
 }
 
 const RISK_STYLE = {
-  danger: { emoji: "🔴", ring: "border-rose-200", head: "text-rose-700", chip: "bg-rose-50" },
-  warning: { emoji: "🟡", ring: "border-amber-200", head: "text-amber-700", chip: "bg-amber-50" },
-  safe: { emoji: "🟢", ring: "border-emerald-200", head: "text-emerald-700", chip: "bg-emerald-50" },
+  danger: { emoji: "🔴", ring: "border-line", head: "text-alert", chip: "bg-alert-bg" },
+  warning: { emoji: "🟡", ring: "border-warn/30", head: "text-warn", chip: "bg-warn-bg" },
+  safe: { emoji: "🟢", ring: "border-line", head: "text-brand", chip: "bg-brand-bg" },
 } as const;
 
 function RiskCard({ card }: { card: RiskCardT }) {
   const st = RISK_STYLE[card.level] ?? RISK_STYLE.warning;
   return (
     <div className={`my-2 rounded-xl border ${st.ring} bg-white p-3 shadow-sm`}>
-      <div className={`flex items-center gap-2 text-sm font-bold ${st.head}`}>
-        <span className="text-lg" aria-hidden>
+      <div className={`flex items-center gap-2 text-[13px] font-bold ${st.head}`}>
+        <span className="text-[17px]" aria-hidden>
           {st.emoji}
         </span>
         <span>{card.title}</span>
       </div>
       {!!card.reasons?.length && (
         <div className="mt-2">
-          <div className="text-[11px] font-semibold text-gray-500">왜 위험한가요</div>
+          <div className="text-[11px] font-semibold text-ink3">왜 위험한가요</div>
           <ul className="mt-1 flex flex-col gap-1">
             {card.reasons.map((r, i) => (
-              <li key={i} className="text-xs text-gray-700">
+              <li key={i} className="text-[12px] text-ink2">
                 • {r}
               </li>
             ))}
@@ -131,11 +131,11 @@ function RiskCard({ card }: { card: RiskCardT }) {
         </div>
       )}
       {!!card.actions?.length && (
-        <div className={`mt-2 rounded-lg ${st.chip} p-2`}>
-          <div className="text-[11px] font-semibold text-gray-600">지금 할 일</div>
+        <div className={`mt-2 rounded-xl ${st.chip} p-2`}>
+          <div className="text-[11px] font-semibold text-ink2">지금 할 일</div>
           <ul className="mt-1 flex flex-col gap-1">
             {card.actions.map((a, i) => (
-              <li key={i} className="text-xs font-medium text-gray-800">
+              <li key={i} className="text-[12px] font-medium text-ink">
                 ✓ {a}
               </li>
             ))}
@@ -151,16 +151,16 @@ export function ForecastCard({ card }: { card: ForecastCardT }) {
   const when = depletionLabel(base?.depletionMonth ?? null);
 
   return (
-    <Shell label={card.title || "앞으로의 잔액"} tone="border-emerald-100">
-      <div className="mb-2 text-sm">
+    <Shell label={card.title || "앞으로의 잔액"} tone="border-line">
+      <div className="mb-2 text-[13px]">
         {when ? (
-          <span className="text-gray-800">
-            지금 이대로면 <b className="text-rose-600">{when}</b>에 잔액이 바닥나요
-            <span className="text-gray-400"> (약 {base.depletionMonth}개월 뒤)</span>
+          <span className="text-ink">
+            지금 이대로면 <b className="text-alert">{when}</b>에 잔액이 바닥나요
+            <span className="text-ink3"> (약 {base.depletionMonth}개월 뒤)</span>
           </span>
         ) : (
-          <span className="text-gray-800">
-            지금 이대로면 <b className="text-emerald-700">{card.labels.length - 1}개월 안에는</b> 잔액이
+          <span className="text-ink">
+            지금 이대로면 <b className="text-brand">{card.labels.length - 1}개월 안에는</b> 잔액이
             바닥나지 않아요
           </span>
         )}
@@ -172,10 +172,10 @@ export function ForecastCard({ card }: { card: ForecastCardT }) {
       <BalanceChart labels={card.labels} series={card.series} />
 
       {card.series.length > 1 && (
-        <ul className="mt-2 flex flex-col gap-1.5 border-t border-gray-100 pt-2">
+        <ul className="mt-2 flex flex-col gap-1.5 border-t border-line pt-2">
           <li className="flex items-center gap-1.5">
             <TrustBadge kind="ai" text="AI가 제안한 시나리오" />
-            <span className="text-[10px] text-gray-400">— 무엇을 바꿀지만 AI가 정하고, 결과는 앱이 계산</span>
+            <span className="text-[10px] text-ink3">— 무엇을 바꿀지만 AI가 정하고, 결과는 앱이 계산</span>
           </li>
           {card.series.slice(1).map((s, i) => {
             const w = depletionLabel(s.depletionMonth);
@@ -185,10 +185,10 @@ export function ForecastCard({ card }: { card: ForecastCardT }) {
                   className="mt-1 inline-block h-2 w-2 shrink-0 rounded-full"
                   style={{ backgroundColor: SERIES_COLORS[(i + 1) % SERIES_COLORS.length] }}
                 />
-                <span className="min-w-0 text-gray-600">
-                  <b className="text-gray-800">{s.label}</b>
+                <span className="min-w-0 text-ink2">
+                  <b className="text-ink">{s.label}</b>
                   {s.why ? ` — ${s.why}` : ""}
-                  <span className="text-gray-400">
+                  <span className="text-ink3">
                     {" "}
                     ({w ? `${w}에 소진` : "24개월 내 소진 안 함"})
                   </span>
@@ -200,9 +200,9 @@ export function ForecastCard({ card }: { card: ForecastCardT }) {
       )}
 
       {card.insight && (
-        <div className="mt-2 rounded-lg bg-sky-50 p-2">
+        <div className="mt-2 rounded-xl bg-ground p-2">
           <TrustBadge kind="ai" />
-          <p className="mt-1 text-[12px] leading-relaxed text-sky-950">{card.insight}</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-ink2">{card.insight}</p>
         </div>
       )}
     </Shell>
@@ -213,13 +213,13 @@ export function RadarCardView({ card }: { card: RadarCardT }) {
   return (
     <Shell
       label={card.title || "자립 준비도"}
-      tone="border-emerald-100"
+      tone="border-line"
       right={
         <span className="flex items-center gap-1.5">
           <TrustBadge kind="calc" text="규칙 채점" />
-          <span className="text-sm font-bold text-emerald-700">
+          <span className="text-[13px] font-bold text-brand">
             {card.score}
-            <span className="text-xs font-normal text-gray-400">/100</span>
+            <span className="text-[12px] font-normal text-ink3">/100</span>
           </span>
         </span>
       }
@@ -231,17 +231,17 @@ export function RadarCardView({ card }: { card: RadarCardT }) {
         <ul className="flex min-w-0 flex-1 flex-col gap-1">
           {card.axes.map((a) => (
             <li key={a.label} className="text-[11px] leading-snug">
-              <span className="font-medium text-gray-700">{a.label}</span>
-              <span className="ml-1 text-gray-400">{a.value}점</span>
-              {a.hint && <span className="block text-gray-500">{a.hint}</span>}
+              <span className="font-medium text-ink2">{a.label}</span>
+              <span className="ml-1 text-ink3">{a.value}점</span>
+              {a.hint && <span className="block text-ink3">{a.hint}</span>}
             </li>
           ))}
         </ul>
       </div>
       {card.advice && (
-        <div className="mt-2 rounded-lg bg-sky-50 p-2">
+        <div className="mt-2 rounded-xl bg-ground p-2">
           <TrustBadge kind="ai" />
-          <p className="mt-1 text-[12px] leading-relaxed text-sky-950">{card.advice}</p>
+          <p className="mt-1 text-[12px] leading-relaxed text-ink2">{card.advice}</p>
         </div>
       )}
     </Shell>
@@ -270,8 +270,8 @@ function Highlighted({ text, spans }: { text: string; spans: ScanCardT["spans"] 
         title={m.why}
         className={`rounded px-0.5 ${
           m.level === "danger"
-            ? "bg-rose-100 text-rose-900 decoration-rose-400"
-            : "bg-amber-100 text-amber-900 decoration-amber-400"
+            ? "bg-alert-bg text-alert decoration-alert"
+            : "bg-warn-bg text-warn decoration-warn"
         } underline decoration-wavy underline-offset-2`}
       >
         {text.slice(m.start, m.end)}
@@ -281,7 +281,7 @@ function Highlighted({ text, spans }: { text: string; spans: ScanCardT["spans"] 
   });
   if (cursor < text.length) out.push(<span key="tail">{text.slice(cursor)}</span>);
 
-  return <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-gray-700">{out}</p>;
+  return <p className="whitespace-pre-wrap break-words text-[13px] leading-relaxed text-ink2">{out}</p>;
 }
 
 export function ScanCardView({ card }: { card: ScanCardT }) {
@@ -292,14 +292,14 @@ export function ScanCardView({ card }: { card: ScanCardT }) {
         <div className="mb-1">
           <TrustBadge kind="ai" text="AI 판독" />
         </div>
-        <div className={`text-base font-bold ${st.head}`}>{card.title}</div>
+        <div className={`text-[15px] font-bold ${st.head}`}>{card.title}</div>
         <RiskGauge className="mt-2" score={card.score} level={card.level} />
       </div>
 
       {card.text && (
-        <div className="rounded-xl bg-gray-50 p-3">
-          <div className="mb-1.5 text-[11px] font-semibold text-gray-500">
-            검사한 내용 {card.spans.length > 0 && <span className="text-rose-600">· 색칠된 부분이 위험해요</span>}
+        <div className="rounded-xl bg-ground p-3">
+          <div className="mb-1.5 text-[11px] font-semibold text-ink3">
+            검사한 내용 {card.spans.length > 0 && <span className="text-alert">· 색칠된 부분이 위험해요</span>}
           </div>
           <Highlighted text={card.text} spans={card.spans} />
         </div>
@@ -308,10 +308,10 @@ export function ScanCardView({ card }: { card: ScanCardT }) {
       {!!card.spans.length && (
         <ul className="flex flex-col gap-1.5">
           {card.spans.map((s, i) => (
-            <li key={i} className="flex gap-2 text-xs leading-snug">
+            <li key={i} className="flex gap-2 text-[12px] leading-snug">
               <span aria-hidden>{s.level === "danger" ? "🔴" : "🟡"}</span>
-              <span className="min-w-0 text-gray-700">
-                <b className="text-gray-900">“{s.text}”</b> — {s.why}
+              <span className="min-w-0 text-ink2">
+                <b className="text-ink">“{s.text}”</b> — {s.why}
               </span>
             </li>
           ))}
@@ -320,10 +320,10 @@ export function ScanCardView({ card }: { card: ScanCardT }) {
 
       {!!card.reasons.length && (
         <div>
-          <div className="text-[11px] font-semibold text-gray-500">왜 그렇게 봤나요</div>
+          <div className="text-[11px] font-semibold text-ink3">왜 그렇게 봤나요</div>
           <ul className="mt-1 flex flex-col gap-1">
             {card.reasons.map((r, i) => (
-              <li key={i} className="text-xs text-gray-700">
+              <li key={i} className="text-[12px] text-ink2">
                 • {r}
               </li>
             ))}
@@ -332,11 +332,11 @@ export function ScanCardView({ card }: { card: ScanCardT }) {
       )}
 
       {!!card.actions.length && (
-        <div className={`rounded-lg ${st.chip} p-2.5`}>
-          <div className="text-[11px] font-semibold text-gray-600">지금 할 일</div>
+        <div className={`rounded-xl ${st.chip} p-2.5`}>
+          <div className="text-[11px] font-semibold text-ink2">지금 할 일</div>
           <ul className="mt-1 flex flex-col gap-1">
             {card.actions.map((a, i) => (
-              <li key={i} className="text-xs font-medium text-gray-800">
+              <li key={i} className="text-[12px] font-medium text-ink">
                 ✓ {a}
               </li>
             ))}
@@ -345,7 +345,7 @@ export function ScanCardView({ card }: { card: ScanCardT }) {
       )}
 
       {card.source && (
-        <p className="flex items-center gap-1.5 text-[11px] text-gray-400">
+        <p className="flex items-center gap-1.5 text-[11px] text-ink3">
           <TrustBadge kind="official" />
           {card.source}
         </p>

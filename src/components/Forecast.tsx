@@ -73,8 +73,8 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
   if (!base.ready) {
     return (
       <div className="mx-auto max-w-2xl">
-        <h2 className="text-lg font-bold text-emerald-700">📉 현금흐름 예측</h2>
-        <div className="mt-4 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 text-sm text-emerald-800">
+        <h2 className="text-[17px] font-bold text-brand">📉 현금흐름 예측</h2>
+        <div className="mt-4 rounded-2xl border border-line bg-brand-bg p-4 text-[13px] text-brand">
           예측하려면 {base.missing.join("·")} 정보가 필요해요.
           <button onClick={onOpenProfile} className="ml-1 font-medium underline">
             내 정보에서 입력하기
@@ -90,8 +90,8 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
   return (
     <div className="mx-auto flex max-w-2xl flex-col gap-4">
       <div className="flex items-baseline justify-between">
-        <h2 className="text-lg font-bold text-emerald-700">📉 현금흐름 예측</h2>
-        <span className="text-xs text-gray-500">앞으로 {result.months}개월</span>
+        <h2 className="text-[17px] font-bold text-brand">📉 현금흐름 예측</h2>
+        <span className="text-[12px] text-ink3">앞으로 {result.months}개월</span>
       </div>
 
       <div className="grid grid-cols-3 gap-2.5">
@@ -115,13 +115,13 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
       />
 
       {loading && (
-        <p className="flex items-center gap-2 text-xs text-gray-400">
-          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-emerald-300 border-t-transparent" />
+        <p className="flex items-center gap-2 text-[12px] text-ink3">
+          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-line border-t-transparent" />
           새봄이 이 상황에서 시도해볼 만한 시나리오를 찾고 있어요…
         </p>
       )}
       {notice && (
-        <p className="rounded-xl border border-amber-200 bg-amber-50 p-2.5 text-xs text-amber-800">{notice}</p>
+        <p className="rounded-xl border border-warn/30 bg-warn-bg p-2.5 text-[12px] text-warn">{notice}</p>
       )}
 
       <div className="flex flex-wrap gap-2">
@@ -133,19 +133,19 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
                 : "지금 현금흐름을 보니 어떤가요? 더 나아지려면 뭘 하면 좋을까요?",
             )
           }
-          className="rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-medium text-white transition hover:bg-emerald-700"
+          className="rounded-2xl bg-brand px-4 py-2.5 text-[13px] font-medium text-white transition hover:bg-brand"
         >
           새봄에게 물어보기
         </button>
         <button
           onClick={onOpenSimulator}
-          className="rounded-2xl border border-gray-200 bg-white px-4 py-2.5 text-sm text-gray-600 transition hover:bg-gray-50"
+          className="rounded-[20px] bg-white px-4 py-2.5 text-[13px] text-ink2 transition hover:bg-ground"
         >
           목돈 배분 조정하기
         </button>
       </div>
 
-      <p className="text-[11px] leading-relaxed text-gray-400">
+      <p className="text-[11px] leading-relaxed text-ink3">
         곡선은 지금 수입·지출이 그대로 이어진다고 가정한 계산이에요. 실제와 다를 수 있으니 참고용으로만
         봐주세요.
       </p>
@@ -154,11 +154,11 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
 }
 
 function Stat({ label, value, tone }: { label: string; value: string; tone?: "good" | "bad" }) {
-  const color = tone === "bad" ? "text-rose-600" : tone === "good" ? "text-emerald-700" : "text-gray-800";
+  const color = tone === "bad" ? "text-alert" : tone === "good" ? "text-brand" : "text-ink";
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-3">
-      <div className="text-[11px] text-gray-500">{label}</div>
-      <div className={`text-sm font-bold ${color}`}>{value}</div>
+    <div className="rounded-[20px] bg-white p-3">
+      <div className="text-[11px] text-ink3">{label}</div>
+      <div className={`text-[13px] font-bold ${color}`}>{value}</div>
     </div>
   );
 }
