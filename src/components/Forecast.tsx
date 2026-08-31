@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { ProfileStore } from "@/lib/profile";
 import { buildForecast, depletionLabel, type ForecastResult } from "@/lib/forecast";
 import { formatMan } from "@/lib/cards";
+import { Relief } from "./Relief";
 import { cachedPost } from "@/lib/requestCache";
 import { ForecastCard } from "./Cards";
 
@@ -12,6 +13,7 @@ type Props = {
   onAsk: (text: string) => void;
   onOpenProfile: () => void;
   onOpenSimulator: () => void;
+  onOpenBenefits: () => void;
 };
 
 /** AI가 시나리오까지 붙인 결과. 어떤 프로필에 대한 것인지 key로 들고 있는다 */
@@ -22,7 +24,7 @@ interface AiForecast {
   notice: string;
 }
 
-export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Props) {
+export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator, onOpenBenefits }: Props) {
   const profileKey = useMemo(() => JSON.stringify(profile), [profile]);
   const [ai, setAi] = useState<AiForecast | null>(null);
   // 프로필이 바뀌면 예전 결과는 자동으로 무시된다 (동기화용 setState 불필요)
@@ -113,6 +115,8 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator }: Pro
           insight: insight || undefined,
         }}
       />
+
+      <Relief profile={profile} onOpenBenefits={onOpenBenefits} />
 
       {loading && (
         <p className="flex items-center gap-2 text-[12px] text-ink3">

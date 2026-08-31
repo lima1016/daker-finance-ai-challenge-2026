@@ -353,6 +353,7 @@ export default function Home() {
                   onAsk={send}
                   onOpenProfile={() => push({ panel: true })}
                   onOpenSimulator={() => push({ view: "simulator" })}
+                  onOpenBenefits={() => push({ view: "benefits" })}
                 />
               )}
 

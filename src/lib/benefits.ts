@@ -66,6 +66,18 @@ export interface Benefit {
   regional?: boolean;
   /** 특정 시·도에서만 하는 사업. 거주 지역을 알면 해당 지역 것만 보여준다 */
   regions?: string[];
+  /**
+   * 이 제도를 받으면 현금흐름이 얼마나 달라지는지 (원 단위).
+   * 금액은 위 amount와 같은 공식 출처다. AI가 만들지 않는다.
+   * 금액을 사람마다 달리 잡아야 하는 제도(LH 전세임대 등)는 비워 둔다.
+   */
+  effect?: (p: ProfileStore) => {
+    incomeDelta?: number;
+    expenseDelta?: number;
+    balanceDelta?: number;
+  } | null;
+  /** 이미 받고 있으면 '신청하면 이렇게 달라져요'를 권하지 않는다 */
+  alreadyHas?: (p: ProfileStore) => boolean;
   /** 이 사람에게 특히 급한 제도인지 — 규칙 기반 (AI 아님) */
   urgentFor?: (p: ProfileStore) => boolean;
   /** 지역 등 프로필에 따라 금액이 갈릴 때. null이면 위의 amount를 그대로 쓴다 */
@@ -108,6 +120,8 @@ export const BENEFITS: Benefit[] = [
     checkedAt: "2026-08-31",
     category: "money",
     urgentFor: nearProtectionEnd,
+    effect: () => ({ incomeDelta: 500_000 }),
+    alreadyHas: (p) => (p.finance.allowance ?? 0) > 0,
   },
   {
     id: "settlement",
@@ -134,6 +148,11 @@ export const BENEFITS: Benefit[] = [
       return `${region} 기준 ${SETTLEMENT_BASE_YEAR} 금액이에요. 보호종료 당시 관할 지자체 기준으로 정해지니, 이사한 적이 있다면 원래 지자체에 확인하세요`;
     },
     urgentFor: nearProtectionEnd,
+    effect: (p) => {
+      const man = settlementForRegion(p.status.region);
+      return man == null ? null : { balanceDelta: man * 10_000 };
+    },
+    alreadyHas: (p) => (p.finance.settlement ?? 0) > 0,
   },
   {
     id: "lh-lease",
@@ -163,6 +182,7 @@ export const BENEFITS: Benefit[] = [
     checkedAt: "2026-08-31",
     category: "housing",
     regions: ["서울"],
+    effect: () => ({ expenseDelta: -200_000 }),
     caution: "국가 지원(LH·자립수당)과 별개로 서울시가 자체 시행하는 사업이에요. 예산에 따라 모집 시기가 정해지니 신청 전에 꼭 확인하세요",
     urgentFor: unstableHousing,
   },
@@ -179,6 +199,7 @@ export const BENEFITS: Benefit[] = [
     checkedAt: "2026-08-31",
     category: "housing",
     regions: ["경기"],
+    effect: () => ({ expenseDelta: -200_000 }),
     caution: "주거 형태에 따라 소득 기준이 달라요(행복주택·통합공공임대는 기준 있음, 매입·전세임대는 무관). 공고문에서 올해 기준을 확인하세요",
     urgentFor: unstableHousing,
   },
