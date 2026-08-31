@@ -85,7 +85,7 @@ export function sampleProfile(): ProfileStore {
     status: {
       nickname: "김새봄",
       endDate,
-      region: "서울",
+      region: "경기", // 예시 정착금 1,500만원과 맞는 지역 (서울은 2,000만원)
       housing: "원룸·월세",
       work: "아르바이트·단기",
       income: 400_000,
@@ -98,6 +98,21 @@ export function sampleProfile(): ProfileStore {
       alloc: { emergency: 1_000_000, living: 3_000_000, saving: 0 },
     },
   };
+}
+
+/**
+ * "서울특별시" · "경기도" 같은 공식 표기를 REGION_OPTIONS의 짧은 이름으로 맞춘다.
+ * DB나 예전 입력에서 긴 이름이 들어오면 지역별 금액·사업이 통째로 안 걸린다.
+ */
+export function normalizeRegion(raw?: string): string | undefined {
+  const v = raw?.trim();
+  if (!v) return undefined;
+  const short = v
+    .replace(/특별자치시|특별자치도|특별시|광역시|자치도/g, "")
+    .replace(/^(경기|강원|충청북|충청남|전라북|전라남|경상북|경상남)도$/, "$1")
+    .replace(/^(충청북|충청남|전라북|전라남|경상북|경상남)$/, (m) => m[0] + m[2])
+    .trim();
+  return (REGION_OPTIONS as readonly string[]).includes(short) ? short : v;
 }
 
 export function computeDday(endDate: string): { label: string; days: number } {

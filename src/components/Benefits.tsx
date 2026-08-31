@@ -8,7 +8,7 @@
 //
 // 금액·조건은 전부 benefits.ts에 적힌 확인된 값이다. AI가 만들지 않는다.
 import { BENEFITS, CATEGORY_LABEL, isStale, sortBenefits, type Benefit } from "@/lib/benefits";
-import type { ProfileStore } from "@/lib/profile";
+import { normalizeRegion, type ProfileStore } from "@/lib/profile";
 import { Icon } from "./Icon";
 
 function Row({ label, value }: { label: string; value: string }) {
@@ -50,7 +50,7 @@ function BenefitCard({
         )}
         {b.regional && (
           <span className="rounded-full bg-ground px-2.5 py-1 text-[11px] font-bold text-ink3">
-            {profile.status.region?.trim() ? `${profile.status.region} 기준` : "지역별로 다름"}
+            {normalizeRegion(profile.status.region) ? `${normalizeRegion(profile.status.region)} 기준` : "지역별로 다름"}
           </span>
         )}
         {urgent && (
@@ -121,7 +121,7 @@ export function Benefits({
 }) {
   const list = sortBenefits(profile);
   const urgentCount = BENEFITS.filter((b) => b.urgentFor?.(profile)).length;
-  const noRegion = !profile.status.region?.trim();
+  const noRegion = !normalizeRegion(profile.status.region);
 
   return (
     <div className="flex flex-col gap-6">

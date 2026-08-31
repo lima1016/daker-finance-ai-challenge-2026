@@ -7,7 +7,7 @@
 // ⚠️ 값을 고칠 때는 반드시 url·source·checkedAt을 함께 고칠 것.
 //    제도는 매년 바뀌므로 checkedAt이 오래되면 화면에 '확인 필요'로 표시된다.
 import type { ProfileStore } from "./profile";
-import { computeDday } from "./profile";
+import { computeDday, normalizeRegion } from "./profile";
 
 export type BenefitCategory = "money" | "housing" | "asset" | "health" | "support";
 
@@ -37,8 +37,9 @@ export const SETTLEMENT_BASE_YEAR = "2025년";
 
 /** 거주 지역의 자립정착금. 지역을 모르면 null */
 export function settlementForRegion(region?: string): number | null {
-  if (!region?.trim()) return null;
-  return SETTLEMENT_BY_REGION[region.trim()] ?? SETTLEMENT_DEFAULT;
+  const key = normalizeRegion(region);
+  if (!key) return null;
+  return SETTLEMENT_BY_REGION[key] ?? SETTLEMENT_DEFAULT;
 }
 
 export interface Benefit {
@@ -127,7 +128,7 @@ export const BENEFITS: Benefit[] = [
       return man == null ? null : `${man.toLocaleString("ko-KR")}만원`;
     },
     cautionFor: (p) => {
-      const region = p.status.region?.trim();
+      const region = normalizeRegion(p.status.region);
       const man = settlementForRegion(region);
       if (!region || man == null) return null;
       return `${region} 기준 ${SETTLEMENT_BASE_YEAR} 금액이에요. 보호종료 당시 관할 지자체 기준으로 정해지니, 이사한 적이 있다면 원래 지자체에 확인하세요`;
@@ -274,7 +275,7 @@ export const BENEFITS: Benefit[] = [
     category: "support",
     regional: true,
     cautionFor: (p) => {
-      const region = p.status.region?.trim();
+      const region = normalizeRegion(p.status.region);
       if (!region) return "전국 17개 시·도에 하나씩 있어요. 거주 지역을 알려주시면 어디를 찾아야 하는지 짚어드릴게요";
       const tel = AGENCY_TEL_BY_REGION[region];
       return tel
@@ -304,7 +305,7 @@ export const BENEFITS: Benefit[] = [
  * 목록에서 빠지면 "그런 제도가 있는 줄도 몰랐다"가 그대로 반복되기 때문.
  */
 export function sortBenefits(p: ProfileStore, list: Benefit[] = BENEFITS): Benefit[] {
-  const region = p.status.region?.trim();
+  const region = normalizeRegion(p.status.region);
   // 지역 한정 사업은 그 지역 사람에게만 보여준다. 지역을 모르면 전부 보여준다 —
   // 모르는 채로 감추면 "그런 게 있는 줄도 몰랐다"가 그대로 반복된다.
   const visible = list.filter((b) => !b.regions || !region || b.regions.includes(region));

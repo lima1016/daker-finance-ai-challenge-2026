@@ -41,6 +41,11 @@ type DbRow = {
   alloc?: { emergency?: number; living?: number; saving?: number } | null;
 };
 
+/** 값이 실제로 있는 키만 남긴다 — undefined를 그대로 펼치면 예시값을 지워버린다 */
+function defined<T extends object>(o: T): Partial<T> {
+  return Object.fromEntries(Object.entries(o).filter(([, v]) => v !== undefined && v !== "")) as Partial<T>;
+}
+
 function rowToProfile(r: DbRow): ProfileStore {
   return {
     status: {
@@ -100,7 +105,10 @@ export default function Home() {
   const activeProfile = useMemo(
     () =>
       previewing
-        ? { status: { ...sample.status, ...profile.status }, finance: { ...sample.finance, ...profile.finance } }
+        ? {
+            status: { ...sample.status, ...defined(profile.status) },
+            finance: { ...sample.finance, ...defined(profile.finance) },
+          }
         : profile,
     [previewing, sample, profile],
   );
@@ -185,19 +193,29 @@ export default function Home() {
     }
   }
 
-  async function loadFromDb() {
+  /** DB에서 한 명을 읽어 온다. 저장은 하지 않는다 */
+  async function fetchFromDb(): Promise<ProfileStore | null> {
     setNotice("");
     try {
       const res = await fetch("/api/profiles");
       const json = await res.json();
       if (!res.ok || !json.profiles?.length) {
         setNotice(json.error || "DB에 저장된 사용자가 없어요.");
-        return;
+        return null;
       }
-      setProfile(rowToProfile(json.profiles[0] as DbRow));
-      closePanel();
+      return rowToProfile(json.profiles[0] as DbRow);
     } catch {
       setNotice("서버에 연결하지 못했어요. 개발 서버가 켜져 있는지 확인해 주세요.");
+      return null;
+    }
+  }
+
+  /** 홈의 빈 상태에서 부르는 경로 — 여기서는 바로 저장한다 */
+  async function loadFromDb() {
+    const loaded = await fetchFromDb();
+    if (loaded) {
+      setProfile(loaded);
+      closePanel();
     }
   }
 
@@ -427,7 +445,7 @@ export default function Home() {
         onClose={closePanel}
         data={profile}
         setData={setProfile}
-        onLoadFromDb={loadFromDb}
+        onFetchFromDb={fetchFromDb}
       />
     </div>
   );
