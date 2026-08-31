@@ -11,25 +11,25 @@ export function ProblemIntro({ onStart, onSample }: { onStart: () => void; onSam
   return (
     <div className="flex flex-col gap-4">
       {/* 한 문장으로 문제 */}
-      <div className="rounded-3xl bg-gradient-to-b from-emerald-50 to-emerald-50/30 p-5">
-        <p className="text-[11px] font-semibold tracking-wide text-emerald-700">자립준비청년</p>
-        <h2 className="mt-1 text-[22px] font-bold leading-snug text-gray-900">
+      <div className="rounded-[20px] bg-gradient-to-b from-brand-bg to-white p-5">
+        <p className="text-[11px] font-semibold tracking-wide text-brand">자립준비청년</p>
+        <h2 className="mt-1 text-[22px] font-bold leading-snug text-ink">
           열여덟에 홀로 서면서
           <br />
-          <b className="text-emerald-700">1,000만원</b>을 처음 손에 쥡니다.
+          <b className="text-brand">1,000만원</b>을 처음 손에 쥡니다.
         </h2>
-        <p className="mt-2 text-[13px] leading-relaxed text-gray-600">
+        <p className="mt-2 text-[13px] leading-relaxed text-ink2">
           어떻게 나눠 써야 하는지, 어떤 지원을 신청할 수 있는지,
-          <br />이 문자가 사기인지 — <b className="text-gray-800">물어볼 어른이 없습니다.</b>
+          <br />이 문자가 사기인지 — <b className="text-ink">물어볼 어른이 없습니다.</b>
         </p>
 
         <div className="mt-4 grid grid-cols-3 gap-2">
           {HEADLINE_STATS.map((s) => (
-            <div key={s.label} className="rounded-2xl bg-white/80 p-2.5">
-              <div className="text-[17px] font-bold leading-tight text-emerald-800">{s.value}</div>
-              <div className="mt-0.5 text-[10.5px] font-medium leading-snug text-gray-700">{s.label}</div>
+            <div key={s.label} className="rounded-[20px] bg-white/80 p-2.5">
+              <div className="text-[17px] font-bold leading-tight text-brand">{s.value}</div>
+              <div className="mt-0.5 text-[11px] font-medium leading-snug text-ink2">{s.label}</div>
               {s.detail && (
-                <div className="mt-0.5 text-[9.5px] leading-snug text-gray-400">{s.detail}</div>
+                <div className="mt-0.5 text-[10px] leading-snug text-ink3">{s.detail}</div>
               )}
             </div>
           ))}
@@ -38,13 +38,13 @@ export function ProblemIntro({ onStart, onSample }: { onStart: () => void; onSam
         <div className="mt-3 flex flex-wrap gap-2">
           <button
             onClick={onStart}
-            className="rounded-2xl bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-emerald-700"
+            className="rounded-2xl bg-brand px-4 py-2.5 text-[13px] font-semibold text-white transition hover:bg-brand"
           >
             내 정보로 시작하기
           </button>
           <button
             onClick={onSample}
-            className="rounded-2xl border border-emerald-200 bg-white px-4 py-2.5 text-sm font-medium text-emerald-700 transition hover:bg-emerald-50"
+            className="rounded-[20px] bg-white px-4 py-2.5 text-[13px] font-medium text-brand transition hover:bg-brand-bg"
           >
             예시 데이터로 저장
           </button>
@@ -57,20 +57,20 @@ export function ProblemIntro({ onStart, onSample }: { onStart: () => void; onSam
       {/* 보조 수치 */}
       <div className="grid gap-2 sm:grid-cols-3">
         {CONTEXT_STATS.map((s) => (
-          <div key={s.label} className="rounded-2xl border border-gray-100 bg-white p-3">
-            <div className="text-sm font-bold text-gray-800">{s.value}</div>
-            <div className="mt-0.5 text-[11px] font-medium text-gray-600">{s.label}</div>
-            {s.detail && <div className="mt-0.5 text-[10px] leading-snug text-gray-400">{s.detail}</div>}
+          <div key={s.label} className="rounded-[20px] bg-white p-3">
+            <div className="text-[13px] font-bold text-ink">{s.value}</div>
+            <div className="mt-0.5 text-[11px] font-medium text-ink2">{s.label}</div>
+            {s.detail && <div className="mt-0.5 text-[10px] leading-snug text-ink3">{s.detail}</div>}
           </div>
         ))}
       </div>
 
-      <p className="text-[10px] leading-relaxed text-gray-400">
+      <p className="text-[10px] leading-relaxed text-ink3">
         출처:{" "}
         {STAT_SOURCES.map((s, i) => (
           <span key={s.name}>
             {i > 0 && " · "}
-            <a href={s.url} target="_blank" rel="noreferrer" className="underline hover:text-gray-600">
+            <a href={s.url} target="_blank" rel="noreferrer" className="underline hover:text-ink2">
               {s.name}
             </a>
             {s.note ? ` (${s.note})` : ""}
@@ -84,16 +84,17 @@ export function ProblemIntro({ onStart, onSample }: { onStart: () => void; onSam
 /** 예시 데이터를 보고 있다는 걸 계속 알려주는 띠 */
 export function PreviewBanner({ onStart }: { onStart: () => void }) {
   return (
-    <div className="sticky top-0 z-10 -mx-1 flex items-center gap-2 rounded-2xl border border-amber-200 bg-amber-50/95 px-3 py-2 backdrop-blur">
-      <span aria-hidden>👀</span>
-      <p className="min-w-0 flex-1 text-[11.5px] leading-snug text-amber-900">
-        아래는 <b>김새봄님(예시)</b>의 화면이에요. 실제로 어떻게 보이는지 그대로 둘러보세요.
+    <div className="flex items-center gap-2.5 rounded-[20px] bg-white px-4 py-3">
+      <span className="h-2 w-2 shrink-0 rounded-full bg-brand" aria-hidden />
+      <p className="min-w-0 flex-1 text-[12px] font-medium leading-snug text-ink3">
+        아래는 <b className="font-bold text-ink">김새봄님(예시)</b>의 화면이에요. 실제로 어떻게
+        보이는지 그대로 둘러보세요.
       </p>
       <button
         onClick={onStart}
-        className="shrink-0 rounded-full bg-amber-600 px-2.5 py-1 text-[11px] font-medium text-white transition hover:bg-amber-700"
+        className="shrink-0 text-[12px] font-bold text-brand transition hover:opacity-70"
       >
-        내 정보 넣기
+        내 정보 넣기 →
       </button>
     </div>
   );
