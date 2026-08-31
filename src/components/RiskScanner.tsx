@@ -125,7 +125,7 @@ export function RiskScanner() {
           onPaste={onPaste}
           rows={5}
           placeholder="검사할 문자·링크·계약 내용을 붙여넣으세요. 스크린샷은 Ctrl+V로 바로 붙여도 돼요…"
-          className="w-full resize-none rounded-2xl bg-ground p-4 text-[13px] outline-none focus:border-line"
+          className="w-full resize-none rounded-2xl bg-white p-4 text-[13px] leading-relaxed text-ink outline-none transition placeholder:text-ink3 focus:ring-2 focus:ring-ink/10"
         />
 
         {image && (

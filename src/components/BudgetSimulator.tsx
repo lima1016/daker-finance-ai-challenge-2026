@@ -70,7 +70,7 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
       </div>
 
       {/* 세그먼트 바 */}
-      <div className="flex h-3 overflow-hidden rounded-full bg-ground">
+      <div className="flex h-3 overflow-hidden rounded-full bg-line">
         {rows.map((r) => (
           <div key={r.key} className={r.color} style={{ width: `${pct(r.value)}%` }} />
         ))}
