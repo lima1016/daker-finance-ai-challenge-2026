@@ -1,22 +1,53 @@
 @import "tailwindcss";
 
+/*
+ * 색 토큰 — 토스/뱅크샐러드 계열의 그레이 스케일.
+ *
+ * 핵심 규칙 두 가지:
+ *  1. 배경은 회색(ground), 카드는 흰색. 카드에 테두리를 두르지 않는다.
+ *     선으로 나누면 시선이 선에 걸리고, 여백으로 나누면 내용에 걸린다.
+ *  2. 색은 브랜드(초록)와 경고(빨강) 둘뿐. 나머지는 전부 무채색 명도차로 구분한다.
+ */
 :root {
-  --background: #fffdf8;
-  --foreground: #1f2937;
+  --background: #f2f4f6;
+  --foreground: #191f28;
   color-scheme: light;
+}
+
+@theme {
+  --color-ground: #f2f4f6; /* 페이지 배경 */
+  --color-line: #e5e8eb; /* 구분선 */
+  --color-ink: #191f28; /* 제목·숫자 */
+  --color-ink2: #4e5968; /* 본문 */
+  --color-ink3: #8b95a1; /* 캡션·라벨 */
+  --color-alert: #f04452; /* 경고 */
+  --color-alert-bg: #fff0f1;
+  --color-warn: #c77700; /* 주의 — 위험도 중간 단계에만 */
+  --color-warn-bg: #fff6e5;
+  --color-brand: #059669; /* 새봄 초록 */
+  --color-brand-bg: #eafaf2;
 }
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", Roboto, sans-serif;
+  --font-sans: "Pretendard Variable", Pretendard, system-ui, -apple-system, "Apple SD Gothic Neo",
+    "Noto Sans KR", "Segoe UI", Roboto, sans-serif;
 }
 
 body {
   background: var(--background);
   color: var(--foreground);
-  font-family: system-ui, -apple-system, "Segoe UI", "Apple SD Gothic Neo", "Noto Sans KR", Roboto, sans-serif;
+  font-family: var(--font-sans);
+  /* 한글은 자간을 살짝 좁혀야 덩어리로 읽힌다 */
+  letter-spacing: -0.02em;
   -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* 숫자는 자릿수가 흔들리지 않게 */
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
 }
 
 button:not(:disabled),
