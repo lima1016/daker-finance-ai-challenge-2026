@@ -85,6 +85,15 @@ const unstableHousing = (p: ProfileStore) =>
 
 const jobSeeking = (p: ProfileStore) => /구직|준비|학생|훈련/.test(p.status.work ?? "");
 
+/**
+ * 시·도 자립지원전담기관 직통 번호 — 공식 페이지에서 확인한 곳만.
+ * 자립정보ON이 목록을 스크립트로 불러와 한 번에 못 긁어왔다.
+ * 확인되는 대로 추가할 것. 없는 지역은 통합 상담센터(1855-2455)로 안내된다.
+ */
+export const AGENCY_TEL_BY_REGION: Record<string, string> = {
+  대전: "042-242-5726",
+};
+
 export const BENEFITS: Benefit[] = [
   {
     id: "allowance",
@@ -173,6 +182,36 @@ export const BENEFITS: Benefit[] = [
     urgentFor: unstableHousing,
   },
   {
+    id: "busan-housing",
+    name: "부산시 자립청년 주거 다(多) 지원",
+    summary: "국가 지원이 끝난 뒤(보호종료 5년 경과)를 메워주는 사업",
+    amount: "머물자리론 대출이자 · 중개보수 · 주거생활비 · 자립물품 구입비",
+    target: "부산 거주 19~39세 무주택 자립청년 세대주 (보호종료 5년 경과)",
+    how: "부산청년플랫폼에서 매월 1일 09시 ~ 10일 18시에 신청",
+    url: "https://young.busan.go.kr/index.nm?menuCd=274",
+    source: "부산광역시 부산청년플랫폼",
+    checkedAt: "2026-08-31",
+    category: "housing",
+    regions: ["부산"],
+    caution:
+      "자립수당·LH 지원이 끝나는 보호종료 5년 이후를 위한 사업이에요. 소득 기준(본인 6천만원·부부 1억원 이하)이 있어요",
+  },
+  {
+    id: "gyeongnam-college",
+    name: "경남 대학생활안정자금",
+    summary: "대학 다니는 자립준비청년에게 주는 목돈",
+    amount: "200만원",
+    target: "경남 거주 자립준비청년 대학생",
+    how: "관할 읍·면·동 행정복지센터에 문의. 경남도 보육정책과에도 물어볼 수 있어요",
+    tel: "055-211-4753",
+    url: "https://youth.gyeongnam.go.kr/youth/menu.es?mid=a11303000000",
+    source: "경상남도 청년정보플랫폼",
+    checkedAt: "2026-08-31",
+    category: "asset",
+    regions: ["경남"],
+    caution: "교재구입비·숙식비·교통비 등 대학 생활에 쓰는 비용을 위한 지원이에요",
+  },
+  {
     id: "local-youth",
     name: "우리 지역 청년 지원사업",
     summary: "시·도마다 따로 하는 청년 사업이 있어요",
@@ -184,7 +223,7 @@ export const BENEFITS: Benefit[] = [
     checkedAt: "2026-08-31",
     category: "support",
     regional: true,
-    caution: "새봄이 아직 확인한 지자체는 서울·경기뿐이에요. 다른 지역은 복지로나 전담기관에서 직접 확인해 주세요",
+    caution: "새봄이 확인한 지자체는 서울·경기·부산·경남이에요. 다른 지역도 자체 사업이 있을 수 있으니 복지로나 전담기관에서 확인해 주세요",
   },
   {
     id: "cda",
@@ -236,9 +275,11 @@ export const BENEFITS: Benefit[] = [
     regional: true,
     cautionFor: (p) => {
       const region = p.status.region?.trim();
-      return region
-        ? `${region} 전담기관이 담당해요. 전국 17개 시·도에 하나씩 있고, 기관마다 운영하는 프로그램이 달라요`
-        : "전국 17개 시·도에 하나씩 있어요. 거주 지역을 알려주시면 어디를 찾아야 하는지 짚어드릴게요";
+      if (!region) return "전국 17개 시·도에 하나씩 있어요. 거주 지역을 알려주시면 어디를 찾아야 하는지 짚어드릴게요";
+      const tel = AGENCY_TEL_BY_REGION[region];
+      return tel
+        ? `${region} 전담기관은 ${tel}로 연결돼요. 기관마다 운영하는 프로그램이 달라요`
+        : `${region} 전담기관이 담당해요. 직통 번호는 자립정보ON에서 확인하거나 1855-2455에 물어보세요`;
     },
     urgentFor: (p) => Boolean(p.status.endDate),
   },
