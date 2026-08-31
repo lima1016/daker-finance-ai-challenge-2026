@@ -55,7 +55,7 @@ export function ChatPane({
   return (
     // h-full이 없으면 높이가 내용만큼만 잡혀 패널이 위쪽에만 뜬다
     <section
-      className={`flex h-full min-h-0 flex-col ${panel ? "w-[340px] bg-white" : "bg-ground"} ${className}`}
+      className={`flex h-full min-h-0 flex-col bg-white ${panel ? "w-[340px]" : ""} ${className}`}
     >
       {/* 머리말 */}
       <div className="shrink-0 px-5 pb-3 pt-5">
