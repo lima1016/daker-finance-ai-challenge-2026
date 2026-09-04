@@ -88,7 +88,8 @@ export function MoneyStatus({
             label="버티는 기간"
             value={survive}
             unit={survive === "—" ? "" : "개월"}
-            note={survive === `${FORECAST_MONTHS}+` ? "2년은 괜찮아요" : undefined}
+            // 현금흐름 예측의 "지금 → 신청하면"과 같은 값이라는 걸 알 수 있게 기준을 밝힌다
+            note={survive === `${FORECAST_MONTHS}+` ? "2년은 괜찮아요" : "지금 이대로일 때"}
           />
         </div>
 

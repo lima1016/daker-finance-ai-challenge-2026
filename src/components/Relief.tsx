@@ -37,16 +37,23 @@ export function Relief({
                   <span className="text-[13px] font-bold text-brand">{benefit.amount}</span>
                 </div>
 
-                {/* 효과를 숫자로 — 이 값이 이 카드의 존재 이유다 */}
-                <div className="mt-3.5 flex items-center gap-3 rounded-2xl bg-ground px-4 py-3">
-                  <span className="text-[15px] font-bold tabular-nums text-ink3 line-through">
-                    {survivalLabel(before)}
-                  </span>
-                  <Icon name="chevronRight" className="h-4 w-4 shrink-0 text-ink3" strokeWidth={2.2} />
-                  <span className="text-[22px] font-extrabold tracking-[-0.03em] tabular-nums text-brand">
-                    {survivalLabel(after)}
-                  </span>
-                  <span className="ml-auto text-[12px] font-semibold text-ink3">
+                {/* 효과를 숫자로 — 이 값이 이 카드의 존재 이유다.
+                    숫자만 두면 무엇의 몇 개월인지 알 수 없어서 이름표를 붙인다. */}
+                <div className="mt-3.5 flex items-end gap-3 rounded-2xl bg-ground px-4 py-3">
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-semibold text-ink3">지금</span>
+                    <span className="text-[15px] font-bold tabular-nums text-ink3">
+                      {survivalLabel(before)}
+                    </span>
+                  </div>
+                  <Icon name="chevronRight" className="mb-1 h-4 w-4 shrink-0 text-ink3" strokeWidth={2.2} />
+                  <div className="flex flex-col">
+                    <span className="text-[11px] font-semibold text-brand">신청하면</span>
+                    <span className="text-[22px] font-extrabold tracking-[-0.03em] tabular-nums text-brand">
+                      {survivalLabel(after)}
+                    </span>
+                  </div>
+                  <span className="mb-1 ml-auto text-[12px] font-semibold text-ink3">
                     {gainedMonths >= 25 ? "24개월 넘게" : `${gainedMonths}개월`} 더 버텨요
                   </span>
                 </div>
