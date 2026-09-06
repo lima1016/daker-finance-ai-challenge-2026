@@ -10,6 +10,7 @@
 import { CATEGORY_LABEL, isStale, sortBenefits, type Benefit } from "@/lib/benefits";
 import { normalizeRegion, type ProfileStore } from "@/lib/profile";
 import { Icon } from "./Icon";
+import { TelLink } from "./TelLink";
 
 function Row({ label, value }: { label: string; value: string }) {
   return (
@@ -76,7 +77,15 @@ function BenefitCard({
       <div className="mt-3 divide-y divide-line border-t border-line">
         <Row label="대상" value={b.target} />
         <Row label="신청" value={b.how} />
-        {b.tel && <Row label="전화" value={b.tel} />}
+        {b.tel && (
+          <div className="flex gap-3 py-2.5">
+            <span className="w-[52px] shrink-0 text-[12px] font-semibold text-ink3">전화</span>
+            <TelLink
+              tel={b.tel}
+              className="min-w-0 flex-1 text-left text-[13px] font-semibold leading-relaxed text-brand underline decoration-brand/30 underline-offset-2"
+            />
+          </div>
+        )}
       </div>
 
       {caution && (

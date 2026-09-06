@@ -8,6 +8,7 @@ import { buildReliefs, survivalLabel, HELPLINES } from "@/lib/relief";
 import type { ProfileStore } from "@/lib/profile";
 import { Icon } from "./Icon";
 import { TrustBadge } from "./TrustBadge";
+import { TelLink } from "./TelLink";
 
 export function Relief({
   profile,
@@ -71,12 +72,10 @@ export function Relief({
                     <Icon name="chevronRight" className="h-3.5 w-3.5" strokeWidth={2.4} />
                   </a>
                   {benefit.tel && (
-                    <a
-                      href={`tel:${benefit.tel}`}
+                    <TelLink
+                      tel={benefit.tel}
                       className="rounded-full bg-white px-4 py-2.5 text-[13px] font-bold text-ink2 ring-1 ring-line transition hover:bg-ground"
-                    >
-                      {benefit.tel}
-                    </a>
+                    />
                   )}
                 </div>
               </div>
@@ -111,12 +110,10 @@ export function Relief({
                 </a>
                 <p className="mt-0.5 text-[12px] leading-snug text-ink3">{h.desc}</p>
               </div>
-              <a
-                href={`tel:${h.tel}`}
+              <TelLink
+                tel={h.tel}
                 className="shrink-0 rounded-full bg-ground px-4 py-2.5 text-[13px] font-bold tabular-nums text-ink transition hover:bg-line"
-              >
-                {h.tel}
-              </a>
+              />
             </div>
           ))}
         </div>
