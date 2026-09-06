@@ -58,12 +58,19 @@ export function BudgetSimulator({ profile, setProfile, onAsk, onOpenProfile }: P
     );
   }
 
+  // 비상금만 생활비를 밀어내고 생활비는 남은 만큼에서 멈춰서, 손잡이를 끝까지
+  // 끌어도 제자리로 돌아왔다. 둘 다 저축(남는 몫)을 먼저 쓰고 저축이 0이면
+  // 상대를 밀어내도록 맞춘다.
   const onEmergency = (v: number) => {
-    const e = Math.min(v, total);
+    const e = Math.min(Math.max(0, v), total);
     setEmergency(e);
     if (e + living > total) setLiving(total - e);
   };
-  const onLiving = (v: number) => setLiving(Math.min(v, total - emergency));
+  const onLiving = (v: number) => {
+    const l = Math.min(Math.max(0, v), total);
+    setLiving(l);
+    if (emergency + l > total) setEmergency(total - l);
+  };
 
   const dx = diagnose({ emergency, living, saving }, exp);
   const tone = TONE[dx.tone];
