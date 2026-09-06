@@ -106,6 +106,13 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator, onOpe
         <Stat label="잔액이 바닥나는 때" value={when ?? "2년 안엔 없어요"} tone={when ? "bad" : "good"} />
       </div>
 
+      {loading && (
+        <p className="flex items-center gap-2 px-1 text-[12px] text-ink3">
+          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-line border-t-transparent" />
+          새봄이 무엇을 바꿔볼지 찾고 있어요… 잠시 뒤 그래프에 시나리오가 더해져요
+        </p>
+      )}
+
       <ForecastCard
         card={{
           type: "forecast",
@@ -118,12 +125,6 @@ export function Forecast({ profile, onAsk, onOpenProfile, onOpenSimulator, onOpe
 
       <Relief profile={profile} onOpenBenefits={onOpenBenefits} />
 
-      {loading && (
-        <p className="flex items-center gap-2 text-[12px] text-ink3">
-          <span className="inline-block h-3 w-3 animate-spin rounded-full border-2 border-line border-t-transparent" />
-          새봄이 무엇을 바꿔볼지 찾고 있어요…
-        </p>
-      )}
       {notice && (
         <p className="rounded-xl border border-warn/30 bg-warn-bg p-2.5 text-[12px] text-warn">{notice}</p>
       )}
